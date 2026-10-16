@@ -1,0 +1,16 @@
+id: "DEV-003"
+type: "development"
+title: "Windows Multi-Python Environment Detection and Launcher Resolution"
+domain: "system-integration"
+status: "approved"
+version: "1.0.0"
+rule: "Windows Native Messaging wrappers and installer scripts must prioritize Python 3 launcher ('py -3') over raw 'python' executable to prevent conflicts with legacy Python 2.x versions in system PATH."
+do:
+  - "Test 'py -3 --version' prior to falling back to 'python'."
+  - "Use 'py -3 -m pip' for dependency installations on Windows."
+  - "Pass '-u' flag to Python in Native Messaging batch wrappers to enforce unbuffered binary stdio."
+dont:
+  - "Do not assume 'python' points to Python 3 in Windows environments."
+reason: "Many Windows systems with legacy scientific or GIS packages have Python 2.7 in PATH, which fails to execute modern Python 3 Native Messaging code."
+related_items:
+  - "ARCH-002"

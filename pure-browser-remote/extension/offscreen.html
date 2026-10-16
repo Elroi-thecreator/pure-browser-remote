@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pure Browser Remote - Offscreen Stream Processor</title>
+</head>
+<body>
+  <script>
+    // Offscreen Document Stream & Media Processor
+    // Runs in the offscreen context with full Web API and DOM access
+    let mediaStream = null;
+    let peerConnection = null;
+
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (!message || !message.target || message.target !== 'offscreen') return;
+
+      if (message.type === 'PROCESS_STREAM') {
+        const streamId = message.streamId;
+        navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: streamId
+            }
+          }
+        }).then((stream) => {
+          mediaStream = stream;
+          sendResponse({ status: 'stream_ready', trackCount: stream.getTracks().length });
+        }).catch((err) => {
+          sendResponse({ status: 'error', error: err.message });
+        });
+        return true;
+      }
+
+      if (message.type === 'STOP_STREAM') {
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(t => t.stop());
+          mediaStream = null;
+        }
+        sendResponse({ status: 'stopped' });
+        return true;
+      }
+    });
+
+    console.log('[Offscreen] Document initialized and listening for media processing.');
+  </script>
+</body>
+</html>

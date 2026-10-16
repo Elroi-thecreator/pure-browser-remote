@@ -1,0 +1,17 @@
+id: "ADR-002"
+type: "decision"
+title: "Content Script DOM Simulation vs Native Messaging for Zero-Privilege Deployments"
+domain: "architecture"
+status: "accepted"
+version: "1.0.0"
+rule: "For zero-privilege client scenarios, DOM simulation via content scripts replaces native messaging OS injection, trading system-wide OS accessibility for instant non-admin web browser control."
+do:
+  - "Inject content scripts automatically into matching tabs and dynamically on-demand."
+  - "Support browser navigation, tab management, scroll, click, and form interaction directly inside web pages."
+dont:
+  - "Do not rely on native installers or elevated OS execution."
+reason: "Many users cannot install Python, packages, or Windows Registry keys due to security lockdowns. A pure browser solution delivers immediate usability with zero friction."
+related_items:
+  - "ARCH-002"
+  - "ARCH-003"
+  - "ADR-001"

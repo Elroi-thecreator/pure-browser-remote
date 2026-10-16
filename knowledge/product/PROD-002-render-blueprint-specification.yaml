@@ -1,0 +1,19 @@
+id: "PROD-002"
+type: "product"
+title: "Render Blueprint Specification and Cloud Relay Infrastructure"
+domain: "deployment-cloud"
+status: "approved"
+version: "1.0.0"
+rule: "The cloud signaling relay and viewer web app must be defined via Infrastructure-as-Code in render.yaml to enable one-click zero-configuration deployment on Render's free tier."
+do:
+  - "Specify healthCheckPath: /health for automatic liveness probing."
+  - "Support dynamic port binding via process.env.PORT || 8080."
+  - "Dynamically resolve the static viewer directory across candidate root directories."
+  - "Provide WSS (port 443) WebSockets to bypass enterprise proxies."
+dont:
+  - "Do not hardcode localhost ports in cloud deployment descriptors."
+  - "Do not require persistent disks or stateful databases for signaling."
+reason: "Declarative Render Blueprints allow users without local developer environments or admin privileges to deploy a 24/7 public relay in under two minutes."
+related_items:
+  - "PROD-001"
+  - "ARCH-003"

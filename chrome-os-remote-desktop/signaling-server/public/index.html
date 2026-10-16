@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remote Desktop Viewer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark">
+
+  <!-- Top Floating Controls Toolbar -->
+  <header id="viewerToolbar" class="toolbar hidden">
+    <div class="toolbar-left">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-text">OS Remote Viewer</span>
+      </div>
+      <div class="badge-group">
+        <span id="connectionBadge" class="badge badge-disconnected">Disconnected</span>
+        <span id="telemetryBadge" class="badge badge-telemetry">-- ms | -- fps | --x--</span>
+      </div>
+    </div>
+
+    <div class="toolbar-center">
+      <!-- Special OS Keys -->
+      <div class="quick-keys">
+        <button id="btnWinKey" class="tool-btn" title="Send Windows / Super Key">⊞ Win</button>
+        <button id="btnAltTab" class="tool-btn" title="Send Alt+Tab">Alt+Tab</button>
+        <button id="btnCtrlAltDel" class="tool-btn tool-btn-warn" title="Send Ctrl+Alt+Del">Ctrl+Alt+Del</button>
+        <button id="btnEsc" class="tool-btn" title="Send Escape Key">Esc</button>
+        <button id="btnClipboardModal" class="tool-btn" title="Send Clipboard / Text Payload">📋 Send Text</button>
+      </div>
+    </div>
+
+    <div class="toolbar-right">
+      <button id="btnToggleKeyboard" class="tool-btn active" title="Toggle Keyboard Interception">
+        ⌨️ Keys: <span id="keyboardStatusText">ON</span>
+      </button>
+      <button id="btnPointerLock" class="tool-btn" title="Lock Pointer to Screen">
+        🎯 Lock Mouse
+      </button>
+      <button id="btnFullscreen" class="tool-btn" title="Toggle Fullscreen View">
+        ⛶ Fullscreen
+      </button>
+      <button id="btnDisconnect" class="tool-btn tool-btn-danger" title="Disconnect Session">
+        ✕ Exit
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport Canvas / Video Container -->
+  <main id="viewportContainer" class="viewport-container">
+    <div id="videoWrapper" class="video-wrapper">
+      <video id="remoteVideo" autoplay playsinline muted></video>
+      <div id="cursorFollower" class="cursor-follower hidden"></div>
+      <div id="pointerLockNotice" class="pointer-lock-notice hidden">
+        Pointer Captured. Press <strong>Esc</strong> to release.
+      </div>
+    </div>
+  </main>
+
+  <!-- Connect Session Modal -->
+  <div id="connectOverlay" class="overlay">
+    <div class="modal card">
+      <div class="modal-header">
+        <div class="modal-icon">🖥️</div>
+        <h2>Connect to Remote Desktop</h2>
+        <p class="subtitle">Enter the 6-digit Host Room PIN to start controlling the remote OS.</p>
+      </div>
+
+      <div class="modal-body">
+        <div id="alertBox" class="alert hidden"></div>
+
+        <div class="form-group">
+          <label for="serverUrlInput">Signaling Server URL</label>
+          <input type="text" id="serverUrlInput" class="input-field" placeholder="ws://localhost:3000/ws" />
+        </div>
+
+        <div class="form-group">
+          <label for="pinInput">6-Digit Room PIN</label>
+          <div class="pin-input-container">
+            <input type="text" id="pinInput" class="input-field pin-field" maxlength="6" placeholder="123456" autocomplete="off" autofocus />
+          </div>
+        </div>
+
+        <button id="btnConnect" class="btn btn-primary btn-block">
+          <span class="btn-text">Connect to Host</span>
+          <span class="btn-spinner hidden"></span>
+        </button>
+      </div>
+
+      <div class="modal-footer">
+        <p class="hint">Ensure the Chrome Extension Host is running with an active desktop share session.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clipboard / Direct Text Modal -->
+  <div id="clipboardModal" class="overlay modal-dialog hidden">
+    <div class="modal card dialog-card">
+      <div class="modal-header">
+        <h3>Send Text or Clipboard to Remote OS</h3>
+        <button id="btnCloseClipboardModal" class="btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="dialog-desc">Paste long text, commands, or code snippets to inject them into the remote operating system instantly.</p>
+        <textarea id="clipboardTextInput" class="textarea-field" rows="6" placeholder="Type or paste text here..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="btnInjectClipboard" class="btn btn-primary">Inject via OS Clipboard (Fast)</button>
+        <button id="btnInjectTyping" class="btn btn-secondary">Simulate Keystrokes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="viewer.js"></script>
+</body>
+</html>

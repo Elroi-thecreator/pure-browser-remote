@@ -1,0 +1,17 @@
+id: "DEV-005"
+type: "development"
+title: "Offscreen Document Media and Stream Processing in Manifest V3"
+domain: "browser-extension"
+status: "approved"
+version: "1.0.0"
+rule: "Manifest V3 extensions handling stream capture without an active foreground UI or processing persistent media pipelines must utilize chrome.offscreen with reasons ['USER_MEDIA', 'DISPLAY_MEDIA', 'WEB_RTC']."
+do:
+  - "Check chrome.offscreen.hasDocument() before calling chrome.offscreen.createDocument."
+  - "Use chrome.runtime.sendMessage to communicate between the service worker, host page, and offscreen document."
+  - "Close the offscreen document when stream capture concludes."
+dont:
+  - "Do not attempt to call restricted chrome.* APIs (such as chrome.tabs or chrome.scripting) from inside the offscreen document."
+reason: "Chrome Manifest V3 service workers lack DOM and media capture capabilities. Offscreen documents bridge this architectural gap securely."
+related_items:
+  - "DEV-002"
+  - "ARCH-003"

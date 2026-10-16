@@ -1,0 +1,20 @@
+id: "ARCH-002"
+type: "architecture"
+title: "Chrome Native Messaging Host Bridge for OS Control"
+domain: "system-integration"
+status: "approved"
+version: "1.0.0"
+rule: "OS-level mouse, keyboard, and clipboard operations must be executed by a registered Chrome Native Messaging host communicating over stdio using 32-bit length-prefixed JSON."
+do:
+  - "Read and write stdio in raw binary mode to prevent newline conversions on Windows."
+  - "Maintain unbuffered or line-buffered I/O loops for sub-millisecond dispatch."
+  - "Sanitize and validate all incoming input events before invoking OS APIs (pyautogui/pynput)."
+  - "Support dynamic screen resolution querying to accurately map normalized viewer coordinates to OS physical pixels."
+dont:
+  - "Do not use Python sys.stdin.readline() which breaks on binary 4-byte prefixes."
+  - "Do not leave pyautogui failsafe enabled in a way that crashes the host on corner mouse travel."
+reason: "Chrome extensions cannot directly invoke native OS input APIs due to browser sandboxing. Native Messaging provides an authorized, secure inter-process bridge."
+related_items:
+  - "ARCH-001"
+  - "DEV-001"
+  - "ADR-001"

@@ -1,0 +1,19 @@
+{
+  "name": "chrome-os-remote-desktop-signaling",
+  "version": "1.0.0",
+  "description": "High-performance WebRTC Signaling Server and Viewer Host for Chrome OS Remote Desktop",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "ws": "^8.17.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": true
+}

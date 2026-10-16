@@ -1,0 +1,19 @@
+id: "DEV-001"
+type: "development"
+title: "Normalized Coordinate and Input Injection Protocol"
+domain: "input-control"
+status: "approved"
+version: "1.0.0"
+rule: "All pointer events transmitted across DataChannel must be normalized to [0.0, 1.0] relative to the active video content rect, accounting for letterboxing/pillarboxing."
+do:
+  - "Compute letterbox/pillarbox offsets dynamically in the viewer using videoWidth, videoHeight, and client bounding box."
+  - "Clamp calculated normalized X and Y values to [0.0, 1.0] before sending."
+  - "Map browser standard KeyboardEvent code and key strings to native OS keys."
+  - "Support text typing and clipboard synchronization for rapid payload transmission."
+dont:
+  - "Do not send raw viewer pixel coordinates to the host."
+  - "Do not neglect right-click context menu suppression on the viewer canvas/video surface."
+reason: "The remote host display aspect ratio and resolution often differ from the remote viewer's display and viewport dimensions."
+related_items:
+  - "ARCH-001"
+  - "ARCH-002"

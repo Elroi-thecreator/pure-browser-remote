@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome OS Remote Desktop Host",
+  "version": "1.0.0",
+  "description": "High-performance WebRTC Remote Desktop Host with OS-level Native Messaging Input Injection.",
+  "permissions": [
+    "nativeMessaging",
+    "storage"
+  ],
+  "action": {
+    "default_title": "Open Remote Desktop Host Controller"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

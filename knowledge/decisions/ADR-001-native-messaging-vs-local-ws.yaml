@@ -1,0 +1,15 @@
+id: "ADR-001"
+type: "decision"
+title: "Native Messaging stdio vs Local WebSocket for Input Injection"
+domain: "architecture"
+status: "accepted"
+version: "1.0.0"
+rule: "The system adopts Chrome Native Messaging over stdio for OS input execution instead of an unauthenticated local WebSocket server."
+do:
+  - "Package the host as an official Chrome Native Messaging manifest registered in OS registry/paths."
+  - "Lock allowed_origins in the manifest to the extension ID."
+dont:
+  - "Do not open arbitrary unauthenticated TCP/WebSocket listener ports on localhost for arbitrary native shell execution."
+reason: "Local WebSocket servers on 127.0.0.1 can be probed or hijacked by untrusted websites running in other browser tabs (Cross-Site WebSocket Hijacking). Chrome Native Messaging is restricted strictly to authorized extension origins and managed securely by the Chrome runtime."
+related_items:
+  - "ARCH-002"

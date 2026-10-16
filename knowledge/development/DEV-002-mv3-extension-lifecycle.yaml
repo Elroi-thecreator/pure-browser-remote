@@ -1,0 +1,18 @@
+id: "DEV-002"
+type: "development"
+title: "Chrome Extension MV3 Host Lifecycle and Desktop Capture"
+domain: "browser-extension"
+status: "approved"
+version: "1.0.0"
+rule: "The host extension must run in a dedicated extension tab (host.html) launched via background service worker to maintain persistent WebRTC, desktopCapture, and Native Messaging connections without being killed by MV3 service worker dormancy."
+do:
+  - "Launch or focus host.html upon clicking the extension action icon."
+  - "Prompt for full display capture via navigator.mediaDevices.getDisplayMedia or chrome.desktopCapture."
+  - "Gracefully handle native host connection lifecycle and reconnections."
+  - "Provide dark-mode UI with clear status indicators and event logs."
+dont:
+  - "Do not attempt to maintain WebRTC PeerConnection or open Native Messaging long-lived ports directly in the background service worker, as MV3 service workers terminate after ~30s of inactivity."
+reason: "Chrome Manifest V3 terminates background service workers during quiet periods. An open host controller tab ensures uninterrupted streaming and control sessions."
+related_items:
+  - "ARCH-001"
+  - "ARCH-002"

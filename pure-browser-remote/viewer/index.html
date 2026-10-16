@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pure Browser Remote - Web Viewer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Floating Navigation & Controls Toolbar -->
+  <header id="viewerToolbar" class="toolbar hidden">
+    <div class="toolbar-left">
+      <div class="brand">
+        <span class="brand-icon">🌐</span>
+        <span class="brand-text">Browser Remote</span>
+      </div>
+      <div class="badge-group">
+        <span id="connectionBadge" class="badge badge-disconnected">Disconnected</span>
+        <span id="telemetryBadge" class="badge badge-telemetry">-- ms | -- fps</span>
+      </div>
+    </div>
+
+    <!-- Remote Browser Tab Address Bar & Nav -->
+    <div class="toolbar-center">
+      <div class="nav-bar">
+        <button id="btnReloadTab" class="tool-btn btn-icon" title="Reload Active Remote Tab">⟳</button>
+        <input type="text" id="remoteUrlInput" class="url-input" placeholder="Enter URL (e.g. wikipedia.org)..." />
+        <button id="btnNavigate" class="tool-btn btn-primary" title="Navigate Host Tab to URL">Go</button>
+      </div>
+    </div>
+
+    <div class="toolbar-right">
+      <button id="btnOpenTextModal" class="tool-btn" title="Send Text or Keystrokes">⌨️ Type Text</button>
+      <button id="btnScrollTop" class="tool-btn" title="Scroll to Top">⬆ Top</button>
+      <button id="btnScrollBottom" class="tool-btn" title="Scroll to Bottom">⬇ Bottom</button>
+      <button id="btnFullscreen" class="tool-btn" title="Toggle Fullscreen">⛶</button>
+      <button id="btnDisconnect" class="tool-btn tool-btn-danger" title="Disconnect Session">✕</button>
+    </div>
+  </header>
+
+  <!-- Viewport Display Container -->
+  <main id="viewportContainer" class="viewport-container">
+    <div id="videoWrapper" class="video-wrapper">
+      <video id="remoteVideo" autoplay playsinline muted></video>
+      <div id="virtualClickMarker" class="click-marker hidden"></div>
+    </div>
+  </main>
+
+  <!-- Connect Session Modal -->
+  <div id="connectOverlay" class="overlay">
+    <div class="modal card">
+      <div class="modal-header">
+        <div class="modal-icon">🌐</div>
+        <h2>Pure Browser Remote</h2>
+        <p class="subtitle">Enter the 6-digit Room PIN displayed on the host browser extension.</p>
+      </div>
+
+      <div class="modal-body">
+        <div id="alertBox" class="alert hidden"></div>
+
+        <div class="form-group">
+          <label for="serverUrlInput">Signaling Server URL</label>
+          <input type="text" id="serverUrlInput" class="input-field" value="ws://localhost:8080" placeholder="ws://localhost:8080 or wss://relay.onrender.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="pinInput">6-Digit Room PIN</label>
+          <input type="text" id="pinInput" class="input-field pin-field" maxlength="6" placeholder="123456" autocomplete="off" autofocus />
+        </div>
+
+        <button id="btnConnect" class="btn btn-primary btn-block">
+          <span class="btn-text">Connect to Host</span>
+          <span class="btn-spinner hidden"></span>
+        </button>
+      </div>
+
+      <div class="modal-footer">
+        <p class="hint">100% In-Browser. No native installations or admin privileges required.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Type Text / Keystroke Modal -->
+  <div id="textModal" class="overlay hidden">
+    <div class="modal card" style="max-width: 480px;">
+      <div class="modal-header" style="text-align: left; display: flex; justify-content: space-between; align-items: center;">
+        <h3>Type Text on Remote Page</h3>
+        <button id="btnCloseTextModal" class="btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="hint" style="margin-bottom: 10px;">Type or paste text to inject into the active input element or web page:</p>
+        <textarea id="remoteTextInput" class="textarea-field" rows="4" placeholder="Type words, search queries, or paste text here..."></textarea>
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
+        <button id="btnSendText" class="btn btn-primary">Inject Text</button>
+        <button id="btnSendEnter" class="btn btn-secondary">Send Enter Key</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="viewer.js"></script>
+</body>
+</html>

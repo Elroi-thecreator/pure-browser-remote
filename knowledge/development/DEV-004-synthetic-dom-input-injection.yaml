@@ -1,0 +1,21 @@
+id: "DEV-004"
+type: "development"
+title: "Content Script Synthetic DOM Event Injection and Element Targeting Protocol"
+domain: "input-simulation"
+status: "approved"
+version: "1.0.0"
+rule: "Input events simulated via content scripts must target the active element under normalized viewport coordinates and dispatch standard synthetic DOM events with proper bubbling and framework value synchronization."
+do:
+  - "Translate normalized coordinates (x, y) into client coordinates using window.innerWidth and window.innerHeight."
+  - "Identify the DOM node using document.elementFromPoint(clientX, clientY)."
+  - "Dispatch MouseEvent with bubbles: true, cancelable: true, and accurate clientX/clientY."
+  - "Trigger focus() and click() on interactive elements (buttons, inputs, links)."
+  - "Dispatch input and change events when injecting text to ensure React, Vue, and Angular two-way binding models update."
+  - "Display a non-intrusive visual remote pointer indicator in the active page for host user awareness."
+dont:
+  - "Do not set input.value without dispatching InputEvent and Event('change', { bubbles: true })."
+  - "Do not let synthetic pointer markers intercept elementFromPoint queries (use pointer-events: none)."
+reason: "Modern Single Page Applications (SPAs) rely on synthetic event listeners and virtual DOM reconciliation; setting direct properties without events fails to trigger framework state updates."
+related_items:
+  - "DEV-001"
+  - "ARCH-003"

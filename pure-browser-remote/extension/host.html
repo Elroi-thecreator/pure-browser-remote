@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pure Browser Remote - Host Control Center</title>
+  <style>
+    :root {
+      --bg-dark: #0a0e17;
+      --bg-card: #131b2a;
+      --bg-card-hover: #1a253a;
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-dark);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      font-size: 2rem;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 6px 10px;
+    }
+    h1 { font-size: 1.35rem; font-weight: 700; color: #fff; }
+    .subtitle { font-size: 0.82rem; color: var(--text-muted); }
+    .tag-nonadmin {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Status Banner */
+    .status-banner {
+      display: flex;
+      justify-content: space-around;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+    }
+    .status-label { color: var(--text-muted); font-weight: 500; }
+    .status-val { font-weight: 600; color: #fff; }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-inactive { background: var(--danger); box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+    .dot-pending { background: var(--warning); box-shadow: 0 0 8px rgba(245, 158, 11, 0.5); }
+    .dot-active { background: var(--success); box-shadow: 0 0 10px rgba(16, 185, 129, 0.7); }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 10px;
+    }
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title h2 { font-size: 1.05rem; font-weight: 600; color: #fff; }
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .badge-warn { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    /* Inputs & PIN */
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    .input-field {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .input-field:focus { border-color: var(--primary); }
+    .pin-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .pin-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    .pin-number { font-family: var(--font-mono); font-size: 2rem; font-weight: 700; letter-spacing: 6px; color: #60a5fa; }
+    .pin-actions { display: flex; gap: 10px; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid var(--border); }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.16); }
+    .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+    .btn-block { width: 100%; }
+
+    /* Video Preview */
+    .preview-box {
+      width: 100%;
+      height: 180px;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+    }
+    #localPreview { width: 100%; height: 100%; object-fit: contain; }
+    .placeholder {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-align: center;
+      gap: 6px;
+      padding: 12px;
+    }
+
+    /* Toggle Switches & Toggles */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    .active-tab-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .active-tab-title { font-weight: 600; font-size: 0.85rem; color: #93c5fd; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .active-tab-url { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Console */
+    .console-card { display: flex; flex-direction: column; gap: 10px; }
+    .console-header { display: flex; justify-content: space-between; align-items: center; }
+    .console-log {
+      background: #070a10;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      height: 180px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .log-entry { line-height: 1.4; word-break: break-all; }
+    .log-info { color: #94a3b8; }
+    .log-success { color: #34d399; }
+    .log-warn { color: #fbbf24; }
+    .log-error { color: #f87171; }
+    .log-input { color: #60a5fa; }
+
+    .hidden { display: none !important; }
+
+    /* Toast */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 500; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .toast-success { border-left: 4px solid var(--success); }
+    .toast-error { border-left: 4px solid var(--danger); }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <div class="logo-container">
+      <span class="logo-icon">🌐</span>
+      <div>
+        <h1>Pure Browser Remote</h1>
+        <span class="subtitle">Zero-Admin WebRTC Screen & Tab Remote Control Host</span>
+      </div>
+    </div>
+    <div>
+      <span class="tag-nonadmin">100% In-Browser (No Native Installs)</span>
+    </div>
+  </header>
+
+  <!-- Global Status Indicator Banner -->
+  <section class="status-banner">
+    <div class="status-item">
+      <span class="dot dot-inactive" id="signalingDot"></span>
+      <span class="status-label">Signaling Server:</span>
+      <span class="status-val" id="signalingStatusText">Disconnected</span>
+    </div>
+    <div class="status-item">
+      <span class="dot dot-inactive" id="captureDot"></span>
+      <span class="status-label">Screen Capture:</span>
+      <span class="status-val" id="captureStatusText">Inactive</span>
+    </div>
+    <div class="status-item">
+      <span class="dot dot-inactive" id="webrtcDot"></span>
+      <span class="status-label">WebRTC Peer:</span>
+      <span class="status-val" id="webrtcStatusText">Idle</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Target Tab:</span>
+      <span class="status-val" id="targetTabStatus" style="color:#60a5fa;">Active Web Page</span>
+    </div>
+  </section>
+
+  <!-- Main Grid Dashboard -->
+  <main class="dashboard-grid">
+
+    <!-- Card 1: Cloud Signaling & Room PIN -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📡</span>
+          <h2>Signaling & Room PIN</h2>
+        </div>
+        <span id="roomBadge" class="badge badge-warn">Not Hosting</span>
+      </div>
+
+      <div class="form-group">
+        <label for="signalingUrl">Signaling WebSocket URL</label>
+        <input type="text" id="signalingUrl" class="input-field" value="ws://localhost:8080" placeholder="ws://localhost:8080 or wss://relay.onrender.com" />
+      </div>
+
+      <div class="pin-box">
+        <span class="pin-label">Room PIN</span>
+        <div class="pin-number" id="pinDisplay">------</div>
+        <div class="pin-actions">
+          <button id="btnGeneratePin" class="btn btn-secondary btn-sm">🎲 Refresh PIN</button>
+          <button id="btnCopyPin" class="btn btn-secondary btn-sm">📋 Copy PIN</button>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button id="btnStartHosting" class="btn btn-success btn-block">🚀 Start Hosting</button>
+        <button id="btnStopHosting" class="btn btn-danger btn-block hidden">🛑 Stop Hosting</button>
+      </div>
+
+      <div class="form-group">
+        <label>Viewer Web App Link</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="viewerWebUrl" class="input-field" style="font-size:0.8rem;" readonly value="http://localhost:8080/viewer/" />
+          <button id="btnCopyViewerUrl" class="btn btn-secondary btn-sm">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Card 2: Desktop / Tab Stream Capture -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>🖥️</span>
+          <h2>Screen & Tab Capture</h2>
+        </div>
+        <span id="captureBadge" class="badge badge-warn">No Stream</span>
+      </div>
+
+      <div class="preview-box">
+        <video id="localPreview" autoplay muted playsinline></video>
+        <div id="noStreamPlaceholder" class="placeholder">
+          <span>No Screen Selected</span>
+          <small>Share Entire Screen or Tab to enable live WebRTC streaming</small>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button id="btnStartCapture" class="btn btn-primary btn-block">🎥 Share Screen / Tab</button>
+        <button id="btnStopCapture" class="btn btn-danger btn-block hidden">⏹ Stop Stream</button>
+      </div>
+    </section>
+
+    <!-- Card 3: In-Tab Remote Control Settings & Target -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>🎯</span>
+          <h2>In-Tab DOM Injection & Controls</h2>
+        </div>
+        <span class="badge badge-success">Non-Admin Active</span>
+      </div>
+
+      <div class="active-tab-box">
+        <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Currently Controlled Tab</span>
+        <div id="activeTabTitle" class="active-tab-title">Detecting active tab...</div>
+        <div id="activeTabUrl" class="active-tab-url">--</div>
+      </div>
+
+      <div class="toggle-row">
+        <span>Show Remote Cursor Overlay on Pages</span>
+        <input type="checkbox" id="toggleRemoteCursor" checked />
+      </div>
+
+      <div class="toggle-row">
+        <span>Local Stream Video Preview</span>
+        <input type="checkbox" id="toggleLocalPreview" checked />
+      </div>
+
+      <div class="form-group" style="margin-top:auto;">
+        <label>Quick Open Web Page for Remote Testing</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="quickUrlInput" class="input-field" placeholder="https://wikipedia.org" value="https://wikipedia.org" />
+          <button id="btnQuickOpen" class="btn btn-secondary btn-sm">Open Tab</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Real-time Activity Log Console -->
+  <section class="card console-card">
+    <div class="console-header">
+      <div class="card-title">
+        <span>📜</span>
+        <h2>Real-Time Activity & In-Tab Input Log</h2>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <label style="font-size:0.8rem; color:var(--text-muted); cursor:pointer;">
+          <input type="checkbox" id="autoScrollCheck" checked /> Auto-scroll
+        </label>
+        <button id="btnClearConsole" class="btn btn-secondary btn-sm">Clear</button>
+      </div>
+    </div>
+    <div id="consoleLog" class="console-log">
+      <div class="log-entry log-info">[System] Pure Browser Remote Host initialized. Ready.</div>
+    </div>
+  </section>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="host.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+id: "PROD-001"
+type: "product"
+title: "Non-Admin Deployment Strategy and Enterprise Policy Handling"
+domain: "deployment-security"
+status: "approved"
+version: "1.0.0"
+rule: "For environments where the operator lacks administrator privileges, all execution must reside strictly within user-space directories and browser memory, with signaling hosted externally in the cloud to prevent local port or firewall restrictions."
+do:
+  - "Deploy the signaling server to free cloud hosting (Render, Railway, Glitch) on standard HTTPS/WSS (port 443) to traverse corporate firewalls."
+  - "Store extension files in user-writable directories (%TEMP%, Downloads, or portable media) requiring no UAC elevation."
+  - "Support a pure Web-Page Host fallback (navigator.mediaDevices.getDisplayMedia) for workstations where Chrome Developer Mode is disabled by enterprise Group Policy (GPO)."
+dont:
+  - "Do not require local npm/node or python runtimes on the non-admin target machine."
+  - "Do not trigger Windows UAC elevation prompts or write to HKEY_LOCAL_MACHINE."
+reason: "Restricted workstations, enterprise virtual desktops (VDIs), and kiosk machines strictly prohibit administrative software installation, but allow standard web browsing and user-space Chrome execution."
+related_items:
+  - "ARCH-003"
+  - "DEV-004"
+  - "ADR-002"

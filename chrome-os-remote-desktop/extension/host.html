@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host Controller - Chrome OS Remote Desktop</title>
+  <link rel="stylesheet" href="host.css">
+</head>
+<body class="theme-dark">
+
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <div>
+          <h1>Chrome OS Remote Desktop</h1>
+          <span class="logo-sub">Host Control Center</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="ext-id-container">
+        <span class="label">Extension ID:</span>
+        <code id="extIdDisplay" class="ext-id-badge">loading...</code>
+        <button id="btnCopyExtId" class="btn-icon" title="Copy Extension ID for Native Host Installer">📋 Copy ID</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Global Status Indicator Banner -->
+  <section class="status-banner">
+    <div class="status-item">
+      <span class="status-dot dot-inactive" id="nativeStatusDot"></span>
+      <span class="status-title">Native Host:</span>
+      <span class="status-val" id="nativeStatusText">Not Connected</span>
+    </div>
+
+    <div class="status-item">
+      <span class="status-dot dot-inactive" id="captureStatusDot"></span>
+      <span class="status-title">Display Capture:</span>
+      <span class="status-val" id="captureStatusText">Inactive</span>
+    </div>
+
+    <div class="status-item">
+      <span class="status-dot dot-inactive" id="sessionStatusDot"></span>
+      <span class="status-title">WebRTC Session:</span>
+      <span class="status-val" id="sessionStatusText">Idle</span>
+    </div>
+
+    <div class="status-item">
+      <span class="status-title">Viewer:</span>
+      <span class="status-val highlight" id="viewerStatusText">None Connected</span>
+    </div>
+  </section>
+
+  <!-- Main Grid Dashboard -->
+  <main class="dashboard-grid">
+
+    <!-- Card 1: Native Messaging Bridge -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">⚙️</span>
+          <h2>OS Input Injection Host</h2>
+        </div>
+        <span id="nativeBadge" class="badge badge-warn">Offline</span>
+      </div>
+
+      <div class="card-body">
+        <p class="card-desc">
+          Connects to the local Python native messaging process (<code>com.remote.oscontroller</code>) to execute OS-level mouse and keyboard events.
+        </p>
+
+        <div class="info-row">
+          <span class="info-label">Host OS Display:</span>
+          <span class="info-val font-mono" id="osDisplayInfo">--</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">IPC Port:</span>
+          <span class="info-val font-mono" id="ipcStatusInfo">Disconnected</span>
+        </div>
+
+        <div class="action-buttons">
+          <button id="btnConnectNative" class="btn btn-secondary">
+            🔌 Connect Native Host
+          </button>
+          <button id="btnToggleNativeHelp" class="btn btn-link">
+            Need Setup Help?
+          </button>
+        </div>
+
+        <div id="nativeHelpBox" class="setup-box hidden">
+          <h4>Windows Setup:</h4>
+          <pre><code>cd native-host
+install_win.bat <span class="highlight-id">&lt;EXTENSION_ID&gt;</span></code></pre>
+          <h4>macOS / Linux Setup:</h4>
+          <pre><code>cd native-host
+chmod +x install_unix.sh
+./install_unix.sh <span class="highlight-id">&lt;EXTENSION_ID&gt;</span></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Card 2: Screen Sharing -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">🖥️</span>
+          <h2>Desktop Display Capture</h2>
+        </div>
+        <span id="captureBadge" class="badge badge-warn">No Stream</span>
+      </div>
+
+      <div class="card-body">
+        <div class="video-preview-box">
+          <video id="localPreview" autoplay muted playsinline></video>
+          <div id="noStreamPlaceholder" class="placeholder">
+            <span>No Screen Selected</span>
+            <small>Share Entire Screen to enable full OS remote control</small>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <label for="fpsSelect">Framerate:</label>
+          <select id="fpsSelect" class="select-field">
+            <option value="60" selected>60 FPS (Ultra Smooth)</option>
+            <option value="30">30 FPS (Standard)</option>
+          </select>
+        </div>
+
+        <div class="action-buttons">
+          <button id="btnStartCapture" class="btn btn-primary">
+            🎥 Share Entire Screen
+          </button>
+          <button id="btnStopCapture" class="btn btn-danger hidden">
+            ⏹ Stop Capture
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Card 3: WebRTC Room & Signaling -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">📡</span>
+          <h2>Signaling & Room PIN</h2>
+        </div>
+        <span id="roomBadge" class="badge badge-warn">Not Hosting</span>
+      </div>
+
+      <div class="card-body">
+        <div class="form-group">
+          <label for="signalingUrl">Signaling WebSocket URL</label>
+          <input type="text" id="signalingUrl" class="input-field" value="ws://localhost:3000/ws" />
+        </div>
+
+        <div class="pin-box">
+          <span class="pin-label">Room PIN Code</span>
+          <div class="pin-display-row">
+            <div id="pinDisplay" class="pin-number">------</div>
+            <button id="btnGeneratePin" class="btn-icon" title="Generate New Random PIN">🎲 Refresh</button>
+            <button id="btnCopyPin" class="btn-icon" title="Copy PIN">📋 Copy</button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button id="btnStartHosting" class="btn btn-success btn-block">
+            🚀 Start Hosting Session
+          </button>
+          <button id="btnStopHosting" class="btn btn-danger btn-block hidden">
+            🛑 Stop Hosting Session
+          </button>
+        </div>
+
+        <div class="viewer-url-box">
+          <span class="info-label">Direct Viewer Web Link:</span>
+          <div class="url-copy-row">
+            <input type="text" id="viewerWebUrl" class="input-field input-sm" readonly value="http://localhost:3000" />
+            <button id="btnCopyViewerUrl" class="btn btn-sm btn-secondary">Copy Link</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Live Input & System Logs Console -->
+  <section class="console-section card">
+    <div class="console-header">
+      <div class="card-title">
+        <span class="icon">📜</span>
+        <h3>Real-time Input & Session Activity Console</h3>
+      </div>
+      <div class="console-controls">
+        <label class="checkbox-label">
+          <input type="checkbox" id="autoScrollCheck" checked /> Auto-scroll
+        </label>
+        <button id="btnClearConsole" class="btn btn-sm btn-secondary">Clear Log</button>
+      </div>
+    </div>
+    <div id="consoleLog" class="console-log">
+      <div class="log-entry log-info">[Init] Chrome OS Remote Desktop Host Controller initialized. Ready.</div>
+    </div>
+  </section>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="host.js"></script>
+</body>
+</html>

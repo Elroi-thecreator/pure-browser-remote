@@ -1,0 +1,18 @@
+# Render Blueprint Specification (Standalone Signaling Relay)
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: pure-browser-remote-relay
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20.12.0
+      - key: PORT
+        value: 10000

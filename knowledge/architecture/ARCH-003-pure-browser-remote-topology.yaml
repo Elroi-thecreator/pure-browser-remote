@@ -1,0 +1,20 @@
+id: "ARCH-003"
+type: "architecture"
+title: "Pure In-Browser Remote Control Architecture (Zero Native Bridge)"
+domain: "browser-architecture"
+status: "approved"
+version: "1.0.0"
+rule: "The zero-privilege remote control system must operate entirely within the browser sandbox using Manifest V3 APIs (desktopCapture, scripting, tabs) and WebRTC DataChannels, eliminating all native binary, OS shell, or Python requirements."
+do:
+  - "Capture desktop or browser tab streams via chrome.desktopCapture and navigator.mediaDevices."
+  - "Relay WebRTC signaling through a lightweight cloud WebSocket server."
+  - "Dispatch input commands from the WebRTC DataChannel to the active tab via chrome.tabs.sendMessage."
+  - "Synthesize DOM interactions inside the web page via content scripts."
+dont:
+  - "Do not require native messaging hosts, local servers, or administrator OS privileges."
+  - "Do not block the extension service worker or offscreen document with heavy DOM polling."
+reason: "Enterprise environments, Chromebooks, and restricted user accounts cannot install native binaries. A pure browser extension architecture operates anywhere Chrome runs with zero setup."
+related_items:
+  - "ARCH-001"
+  - "DEV-004"
+  - "ADR-002"

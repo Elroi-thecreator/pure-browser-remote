@@ -1,0 +1,19 @@
+{
+  "name": "pure-browser-remote-signaling",
+  "version": "1.0.0",
+  "description": "Cloud-ready WebRTC signaling relay for Pure Browser Remote Control",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "ws": "^8.17.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": true
+}

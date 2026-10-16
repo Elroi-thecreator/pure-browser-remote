@@ -1,0 +1,9 @@
+{
+  "name": "com.remote.oscontroller",
+  "description": "Chrome OS Remote Desktop Native Input Injection Host",
+  "path": "os_controller_win.bat",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://<EXTENSION_ID>/"
+  ]
+}

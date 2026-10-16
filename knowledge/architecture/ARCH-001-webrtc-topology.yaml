@@ -1,0 +1,18 @@
+id: "ARCH-001"
+type: "architecture"
+title: "WebRTC PeerConnection and DataChannel Architecture"
+domain: "networking"
+status: "approved"
+version: "1.0.0"
+rule: "The remote control topology must use direct WebRTC PeerConnection for video streaming and SCTP DataChannels for low-latency bidirectional control signaling."
+do:
+  - "Use STUN/TURN servers to negotiate ICE connectivity across NATs and firewalls."
+  - "Use an unordered or ordered binary/JSON DataChannel with low buffering for keyboard and mouse events."
+  - "Transmit normalized coordinates [0.0, 1.0] to remain resolution-independent."
+dont:
+  - "Do not route high-frequency real-time mouse movement through the central WebSocket signaling server."
+  - "Do not block the WebRTC video stream thread with input processing."
+reason: "Direct peer-to-peer WebRTC connections provide sub-50ms latency for display capture and input feedback, bypassing server bandwidth bottlenecks."
+related_items:
+  - "ARCH-002"
+  - "DEV-001"
