@@ -249,6 +249,10 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', rooms: rooms.size });
 });
 
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', rooms: rooms.size });
+});
+
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 

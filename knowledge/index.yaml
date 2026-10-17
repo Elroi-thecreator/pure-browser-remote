@@ -1,7 +1,7 @@
 project: "Chrome OS Remote Desktop & Pure Browser Remote"
-version: "1.5.0"
+version: "1.6.0"
 last_updated: "2026-10-17"
-knowledge_units_count: 15
+knowledge_units_count: 16
 
 domains:
   architecture:
@@ -45,6 +45,10 @@ domains:
     - id: "DEV-006"
       title: "Device State Management and Token-Based WebSocket Handshake"
       file: "development/DEV-006-token-based-websocket-handshake.yaml"
+      status: "approved"
+    - id: "DEV-007"
+      title: "Automated End-to-End Signaling and WebRTC Verification Protocol"
+      file: "development/DEV-007-automated-e2e-testing-protocol.yaml"
       status: "approved"
   product:
     - id: "PROD-001"

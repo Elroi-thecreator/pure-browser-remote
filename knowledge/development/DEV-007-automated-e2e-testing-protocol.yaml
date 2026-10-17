@@ -1,0 +1,22 @@
+id: "DEV-007"
+type: "development"
+title: "Automated End-to-End Signaling and WebRTC Verification Protocol"
+domain: "testing-and-qa"
+status: "approved"
+version: "1.0.0"
+rule: "Prior to public release, all cloud signaling endpoints, authentication workflows, device presence listings, and WebRTC SDP/ICE candidate relay flows must be validated against automated integration tests running against the production deployment."
+do:
+  - "Maintain test_e2e.py to validate both PIN-based and Account-based WebRTC signaling flows."
+  - "Verify HTTP 200 responses on all public static assets (/viewer/, /privacy, /host) and health monitoring endpoints (/health, /api/health)."
+  - "Execute synthetic registration, duplicate detection, bad credential rejection, and session token generation cycles."
+  - "Simulate concurrent Host and Viewer WebSocket connections to verify bidirectional SDP offer/answer exchange, ICE candidate routing, and clean peer disconnection cleanup."
+  - "Audit DOM ID consistency between JavaScript controllers and HTML views to prevent runtime null reference exceptions."
+dont:
+  - "Do not release new versions without executing the live end-to-end test suite against the target relay."
+  - "Do not rely exclusively on manual browser testing for signaling state transitions and presence heartbeats."
+reason: "WebRTC peer negotiation relies on precise JSON message structures and WebSocket state lifecycles; automated integration tests guarantee that network edge cases, auth expiration, and candidate relays operate reliably across all client platforms."
+related_items:
+  - "ARCH-001"
+  - "DEV-006"
+  - "PROD-002"
+  - "PROD-003"
