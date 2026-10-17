@@ -111,8 +111,33 @@
     alertBox.classList.add('hidden');
   }
 
+  function normalizeWsUrl(url) {
+    let cleaned = (url || '').trim();
+    if (!cleaned) return `${defaultProto}//${defaultHost}`;
+
+    if (cleaned.startsWith('https://')) {
+      cleaned = cleaned.replace('https://', 'wss://');
+    } else if (cleaned.startsWith('http://')) {
+      cleaned = cleaned.replace('http://', 'ws://');
+    }
+
+    if (!cleaned.startsWith('ws://') && !cleaned.startsWith('wss://')) {
+      if (cleaned.includes('localhost') || cleaned.includes('127.0.0.1')) {
+        cleaned = 'ws://' + cleaned;
+      } else {
+        cleaned = 'wss://' + cleaned;
+      }
+    }
+
+    if (cleaned.startsWith('ws://') && !cleaned.includes('localhost') && !cleaned.includes('127.0.0.1')) {
+      cleaned = cleaned.replace('ws://', 'wss://');
+    }
+
+    return cleaned.replace(/\/+$/, '');
+  }
+
   function getHttpBaseUrl() {
-    const raw = serverUrlInput.value.trim() || `${defaultProto}//${defaultHost}`;
+    const raw = normalizeWsUrl(serverUrlInput.value.trim());
     if (raw.startsWith('wss://')) {
       return raw.replace('wss://', 'https://');
     }
@@ -240,7 +265,8 @@
   }
 
   function connectDashboardSocket() {
-    const wsUrl = serverUrlInput.value.trim();
+    const wsUrl = normalizeWsUrl(serverUrlInput.value);
+    serverUrlInput.value = wsUrl;
     if (!wsUrl || !authToken) return;
 
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -420,7 +446,8 @@
     btnConnectPin.querySelector('.btn-text').textContent = 'Connecting...';
     setStatus('connecting');
 
-    const wsUrl = serverUrlInput.value.trim();
+    const wsUrl = normalizeWsUrl(serverUrlInput.value);
+    serverUrlInput.value = wsUrl;
     if (ws) {
       try { ws.close(); } catch (e) {}
       ws = null;
@@ -937,6 +964,14 @@
     } else {
       document.exitFullscreen().catch(() => {});
     }
+  });
+
+  serverUrlInput.addEventListener('change', () => {
+    serverUrlInput.value = normalizeWsUrl(serverUrlInput.value);
+  });
+
+  serverUrlInput.addEventListener('blur', () => {
+    serverUrlInput.value = normalizeWsUrl(serverUrlInput.value);
   });
 
   // -------------------------------------------------------------

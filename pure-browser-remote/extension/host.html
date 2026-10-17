@@ -390,6 +390,7 @@
       <div class="form-group">
         <label for="signalingUrl">Signaling Server URL</label>
         <input type="text" id="signalingUrl" class="input-field" value="ws://localhost:8080" placeholder="ws://localhost:8080 or wss://relay.onrender.com" />
+        <span style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Cloud hosts require <code>wss://</code> (e.g. Render). Auto-upgraded automatically.</span>
       </div>
 
       <!-- Account Mode View: Logged Out -->
@@ -435,8 +436,9 @@
           </div>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-          <button id="btnDisconnectHost" class="btn btn-danger btn-block">Stop Device Host</button>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnReconnectHost" class="btn btn-primary btn-block">⚡ Connect Device</button>
+          <button id="btnDisconnectHost" class="btn btn-danger btn-block hidden">Stop Device Host</button>
           <button id="btnHostLogout" class="btn btn-secondary btn-block">Log Out</button>
         </div>
         <p class="subtitle" style="text-align: center; font-size: 0.76rem;">Open Viewer on any device, log into this account, and click <strong>Connect</strong>!</p>

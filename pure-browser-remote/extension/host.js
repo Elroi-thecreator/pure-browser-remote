@@ -31,6 +31,7 @@
   const accountDeviceLabel = document.getElementById('accountDeviceLabel');
   const accountDeviceIdLabel = document.getElementById('accountDeviceIdLabel');
   const accountOnlineBadge = document.getElementById('accountOnlineBadge');
+  const btnReconnectHost = document.getElementById('btnReconnectHost');
   const btnDisconnectHost = document.getElementById('btnDisconnectHost');
   const btnHostLogout = document.getElementById('btnHostLogout');
 
@@ -82,6 +83,10 @@
   let isAccountHostActive = false;
   let isPinHostActive = false;
 
+  let reconnectTimer = null;
+  let reconnectAttempts = 0;
+  let isManualDisconnect = false;
+
   function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -110,8 +115,41 @@
     }
   }
 
+  // -------------------------------------------------------------
+  // Smart URL Normalization (Auto-Upgrade to wss:// for Cloud Hosts)
+  // -------------------------------------------------------------
+  function normalizeWsUrl(url) {
+    let cleaned = (url || '').trim();
+    if (!cleaned) return 'ws://localhost:8080';
+
+    // Convert http/https to ws/wss
+    if (cleaned.startsWith('https://')) {
+      cleaned = cleaned.replace('https://', 'wss://');
+    } else if (cleaned.startsWith('http://')) {
+      cleaned = cleaned.replace('http://', 'ws://');
+    }
+
+    // Add protocol if user typed raw domain
+    if (!cleaned.startsWith('ws://') && !cleaned.startsWith('wss://')) {
+      if (cleaned.includes('localhost') || cleaned.includes('127.0.0.1')) {
+        cleaned = 'ws://' + cleaned;
+      } else {
+        cleaned = 'wss://' + cleaned;
+      }
+    }
+
+    // CRITICAL: Cloud platforms (Render, Railway, Fly) terminate SSL and redirect ws:// -> 301.
+    // WebSockets cannot follow 301 redirects in Chrome, so remote hosts MUST use wss://.
+    if (cleaned.startsWith('ws://') && !cleaned.includes('localhost') && !cleaned.includes('127.0.0.1')) {
+      log(`[Signaling] Cloud host detected with ws://. Auto-upgraded to secure wss:// for Render/TLS compatibility.`, 'warn');
+      cleaned = cleaned.replace('ws://', 'wss://');
+    }
+
+    return cleaned.replace(/\/+$/, '');
+  }
+
   function getHttpBaseUrl() {
-    const raw = signalingUrlInput.value.trim() || 'ws://localhost:8080';
+    const raw = normalizeWsUrl(signalingUrlInput.value.trim());
     if (raw.startsWith('wss://')) {
       return raw.replace('wss://', 'https://');
     }
@@ -164,7 +202,9 @@
         'pbr_active_mode'
       ], (items) => {
         if (items.pbr_signaling_url) {
-          signalingUrlInput.value = items.pbr_signaling_url;
+          signalingUrlInput.value = normalizeWsUrl(items.pbr_signaling_url);
+        } else {
+          signalingUrlInput.value = 'ws://localhost:8080';
         }
 
         if (items.pbr_device_id) {
@@ -220,6 +260,10 @@
     accountStatusText.textContent = 'Logged Out';
     roomBadge.className = 'badge badge-warn';
     roomBadge.textContent = 'Offline';
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
   }
 
   // -------------------------------------------------------------
@@ -238,6 +282,11 @@
       showToast('Password must be at least 6 characters.', 'error');
       return;
     }
+
+    // Normalize URL before making HTTP request
+    const normUrl = normalizeWsUrl(signalingUrlInput.value);
+    signalingUrlInput.value = normUrl;
+    chrome.storage.local.set({ pbr_signaling_url: normUrl });
 
     const endpoint = action === 'login' ? '/api/auth/login' : '/api/auth/register';
     const httpBase = getHttpBaseUrl();
@@ -280,6 +329,7 @@
   btnHostRegister.addEventListener('click', () => performAuth('register'));
 
   btnHostLogout.addEventListener('click', () => {
+    isManualDisconnect = true;
     disconnectCurrentSession();
     renderLoggedOutUi();
     showToast('Logged out of host account.');
@@ -287,12 +337,26 @@
   });
 
   btnDisconnectHost.addEventListener('click', () => {
+    isManualDisconnect = true;
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
     disconnectCurrentSession();
     roomBadge.className = 'badge badge-warn';
-    roomBadge.textContent = 'Standby';
+    roomBadge.textContent = 'Offline';
     accountOnlineBadge.className = 'badge badge-neutral';
-    accountOnlineBadge.textContent = 'Standby (Disconnected)';
-    log('Host disconnected from relay. Click Login or reload to reconnect.', 'warn');
+    accountOnlineBadge.textContent = 'Standby (Offline)';
+    btnReconnectHost.classList.remove('hidden');
+    btnDisconnectHost.classList.add('hidden');
+    log('Host disconnected from relay. Click "Connect Device" to reconnect.', 'warn');
+  });
+
+  btnReconnectHost.addEventListener('click', () => {
+    reconnectAttempts = 0;
+    isManualDisconnect = false;
+    log('Manual reconnect requested...', 'info');
+    connectAccountHostSocket();
   });
 
   function autoConnectAccountHost() {
@@ -302,20 +366,56 @@
     }
   }
 
+  function scheduleReconnect() {
+    if (reconnectTimer) clearTimeout(reconnectTimer);
+    reconnectAttempts++;
+    const delay = Math.min(2500 * Math.pow(1.3, reconnectAttempts - 1), 12000);
+    const delaySec = Math.round(delay / 1000);
+
+    accountOnlineBadge.className = 'badge badge-warn';
+    accountOnlineBadge.textContent = `Reconnecting in ${delaySec}s...`;
+    roomBadge.className = 'badge badge-warn';
+    roomBadge.textContent = 'Reconnecting...';
+
+    log(`Signaling connection dropped. Reconnecting in ${delaySec}s (attempt ${reconnectAttempts})...`, 'warn');
+
+    reconnectTimer = setTimeout(() => {
+      if (currentToken && activeMode === 'account' && !isManualDisconnect) {
+        connectAccountHostSocket();
+      }
+    }, delay);
+  }
+
   function connectAccountHostSocket() {
-    const wsUrl = signalingUrlInput.value.trim();
-    if (!wsUrl) return;
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+
+    isManualDisconnect = false;
+    const wsUrl = normalizeWsUrl(signalingUrlInput.value);
+    signalingUrlInput.value = wsUrl; // reflect normalized URL in UI
+    chrome.storage.local.set({ pbr_signaling_url: wsUrl });
 
     disconnectSignalingWs();
+
+    accountOnlineBadge.className = 'badge badge-warn';
+    accountOnlineBadge.textContent = 'Connecting...';
+    roomBadge.className = 'badge badge-warn';
+    roomBadge.textContent = 'Connecting...';
+
+    log(`Opening WebSocket to: ${wsUrl}...`, 'info');
 
     try {
       signalingWs = new WebSocket(wsUrl);
     } catch (e) {
       log(`WebSocket error: ${e.message}`, 'error');
+      scheduleReconnect();
       return;
     }
 
     signalingWs.onopen = () => {
+      reconnectAttempts = 0;
       signalingDot.className = 'dot dot-active';
       signalingStatusText.textContent = 'Connected';
       log(`WebSocket connected to ${wsUrl}. Registering device '${currentDeviceName}'...`, 'info');
@@ -341,10 +441,13 @@
       switch (type) {
         case 'host-authenticated':
           isAccountHostActive = true;
+          reconnectAttempts = 0;
           roomBadge.className = 'badge badge-success';
           roomBadge.textContent = 'Listed & Online';
           accountOnlineBadge.className = 'badge badge-success';
           accountOnlineBadge.textContent = 'Online & Listed';
+          btnReconnectHost.classList.add('hidden');
+          btnDisconnectHost.classList.remove('hidden');
           webrtcDot.className = 'dot dot-pending';
           webrtcStatusText.textContent = 'Awaiting Viewer Call';
           log(`Device registered and listed online: '${deviceName}' (${deviceId}) under @${username}`, 'success');
@@ -387,15 +490,24 @@
     signalingWs.onerror = () => {
       signalingDot.className = 'dot dot-inactive';
       signalingStatusText.textContent = 'Error';
+      log(`WebSocket error on ${wsUrl}. Verify server is online and requires wss:// on cloud platforms.`, 'error');
     };
 
     signalingWs.onclose = () => {
       signalingDot.className = 'dot dot-inactive';
       signalingStatusText.textContent = 'Disconnected';
       isAccountHostActive = false;
-      accountOnlineBadge.className = 'badge badge-warn';
-      accountOnlineBadge.textContent = 'Reconnecting...';
-      log('Signaling WebSocket closed. Will retry if active...', 'warn');
+      btnReconnectHost.classList.remove('hidden');
+      btnDisconnectHost.classList.add('hidden');
+
+      if (!isManualDisconnect && currentToken && activeMode === 'account') {
+        scheduleReconnect();
+      } else {
+        accountOnlineBadge.className = 'badge badge-neutral';
+        accountOnlineBadge.textContent = 'Standby (Offline)';
+        roomBadge.className = 'badge badge-warn';
+        roomBadge.textContent = 'Offline';
+      }
     };
   }
 
@@ -410,7 +522,7 @@
   }
 
   function updateViewerUrl() {
-    const rawUrl = signalingUrlInput.value.trim();
+    const rawUrl = normalizeWsUrl(signalingUrlInput.value.trim());
     let httpUrl = 'http://localhost:8080/viewer/';
     try {
       if (rawUrl.startsWith('ws://')) {
@@ -423,7 +535,10 @@
   }
 
   function startPinHosting() {
-    const url = signalingUrlInput.value.trim();
+    const url = normalizeWsUrl(signalingUrlInput.value.trim());
+    signalingUrlInput.value = url;
+    chrome.storage.local.set({ pbr_signaling_url: url });
+
     if (!url) {
       showToast('Enter a valid Signaling WebSocket URL', 'error');
       return;
@@ -869,10 +984,23 @@
     }
   });
 
-  signalingUrlInput.addEventListener('input', () => {
-    const val = signalingUrlInput.value.trim();
-    if (val) {
-      chrome.storage.local.set({ pbr_signaling_url: val });
+  // URL normalization on blur & change
+  signalingUrlInput.addEventListener('change', () => {
+    const normalized = normalizeWsUrl(signalingUrlInput.value);
+    signalingUrlInput.value = normalized;
+    chrome.storage.local.set({ pbr_signaling_url: normalized });
+    updateViewerUrl();
+    if (currentToken && activeMode === 'account') {
+      log(`Relay URL updated to ${normalized}. Reconnecting...`, 'info');
+      connectAccountHostSocket();
+    }
+  });
+
+  signalingUrlInput.addEventListener('blur', () => {
+    const normalized = normalizeWsUrl(signalingUrlInput.value);
+    if (signalingUrlInput.value !== normalized) {
+      signalingUrlInput.value = normalized;
+      chrome.storage.local.set({ pbr_signaling_url: normalized });
       updateViewerUrl();
     }
   });
