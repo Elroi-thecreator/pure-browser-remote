@@ -40,6 +40,51 @@ async function closeOffscreenDocument() {
   }
 }
 
+// Check if a tab is a normal accessible web page (not internal chrome/extension page)
+function isValidWebTab(tab) {
+  if (!tab || !tab.id || !tab.url) return false;
+  const url = tab.url.toLowerCase();
+  return !url.startsWith('chrome://') &&
+         !url.startsWith('edge://') &&
+         !url.startsWith('chrome-extension://') &&
+         !url.startsWith('devtools://') &&
+         !url.startsWith('about:') &&
+         !url.startsWith('view-source:');
+}
+
+// Intelligently find the active/target web tab to inject input into
+async function resolveTargetWebTab() {
+  // 1. Check active tab in last focused window (if it is a valid web tab)
+  try {
+    const focusedTabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (focusedTabs.length > 0 && isValidWebTab(focusedTabs[0])) {
+      return focusedTabs[0];
+    }
+  } catch (e) {}
+
+  // 2. Check any active tab across all windows
+  try {
+    const activeTabs = await chrome.tabs.query({ active: true });
+    for (const t of activeTabs) {
+      if (isValidWebTab(t)) {
+        return t;
+      }
+    }
+  } catch (e) {}
+
+  // 3. Fallback: Find any open web tab in any window
+  try {
+    const allTabs = await chrome.tabs.query({});
+    for (const t of allTabs) {
+      if (isValidWebTab(t)) {
+        return t;
+      }
+    }
+  } catch (e) {}
+
+  return null;
+}
+
 // Router for remote input and tab commands
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || !message.type) return;
@@ -54,17 +99,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  // Get active web tab info for Host UI display
+  if (message.type === 'GET_TARGET_TAB') {
+    (async () => {
+      const tab = await resolveTargetWebTab();
+      if (tab) {
+        sendResponse({ tabId: tab.id, title: tab.title, url: tab.url });
+      } else {
+        sendResponse({ tabId: null, title: 'No web page open', url: 'Open a tab to begin' });
+      }
+    })();
+    return true;
+  }
+
   // Handle Tab navigation & management commands
   if (message.type === 'REMOTE_TAB_NAVIGATE') {
     (async () => {
-      const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-      if (activeTab && activeTab.id) {
-        let targetUrl = message.url.trim();
-        if (!/^https?:\/\//i.test(targetUrl)) {
-          targetUrl = 'https://' + targetUrl;
-        }
-        await chrome.tabs.update(activeTab.id, { url: targetUrl });
-        sendResponse({ status: 'navigated', url: targetUrl });
+      let targetTab = await resolveTargetWebTab();
+      let targetUrl = message.url.trim();
+      if (!/^https?:\/\//i.test(targetUrl)) {
+        targetUrl = 'https://' + targetUrl;
+      }
+
+      if (targetTab && targetTab.id) {
+        await chrome.tabs.update(targetTab.id, { url: targetUrl, active: true });
+        sendResponse({ status: 'navigated', url: targetUrl, tabId: targetTab.id });
+      } else {
+        targetTab = await chrome.tabs.create({ url: targetUrl, active: true });
+        sendResponse({ status: 'created', url: targetUrl, tabId: targetTab.id });
       }
     })();
     return true;
@@ -72,15 +134,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === 'REMOTE_TAB_ACTION') {
     (async () => {
-      const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-      if (!activeTab || !activeTab.id) return;
-
-      if (message.action === 'reload') {
-        await chrome.tabs.reload(activeTab.id);
-      } else if (message.action === 'new_tab') {
-        await chrome.tabs.create({ url: message.url || 'https://www.google.com' });
-      } else if (message.action === 'close_tab') {
-        await chrome.tabs.remove(activeTab.id);
+      let targetTab = await resolveTargetWebTab();
+      if (message.action === 'new_tab') {
+        let url = (message.url || 'https://www.google.com').trim();
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+        await chrome.tabs.create({ url, active: true });
+      } else if (targetTab && targetTab.id) {
+        if (message.action === 'reload') {
+          await chrome.tabs.reload(targetTab.id);
+        } else if (message.action === 'close_tab') {
+          await chrome.tabs.remove(targetTab.id);
+        }
       }
       sendResponse({ status: 'action_completed', action: message.action });
     })();
@@ -90,37 +154,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Forward remote DOM input event to active web tab
   if (message.type === 'DISPATCH_REMOTE_INPUT') {
     (async () => {
-      const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-      if (!activeTab || !activeTab.id || !activeTab.url) {
-        sendResponse({ status: 'no_active_tab' });
-        return;
-      }
-
-      // Skip chrome:// and extension:// URLs where content scripts cannot execute
-      if (activeTab.url.startsWith('chrome://') || activeTab.url.startsWith('edge://') || activeTab.url.startsWith('chrome-extension://')) {
-        sendResponse({ status: 'skipped_internal_page', url: activeTab.url });
-        return;
+      let targetTab = await resolveTargetWebTab();
+      if (!targetTab) {
+        // Automatically create a web tab if user hasn't opened any web page yet
+        targetTab = await chrome.tabs.create({ url: 'https://www.google.com', active: true });
+        await new Promise(r => setTimeout(r, 600));
       }
 
       try {
         // Send directly to content.js in tab
-        await chrome.tabs.sendMessage(activeTab.id, {
+        await chrome.tabs.sendMessage(targetTab.id, {
           action: 'simulate_input',
           ...message.payload
         });
-        sendResponse({ status: 'delivered', tabId: activeTab.id, title: activeTab.title });
+        sendResponse({ status: 'delivered', tabId: targetTab.id, title: targetTab.title });
       } catch (err) {
         // If content script was not ready, inject dynamically and retry
         try {
           await chrome.scripting.executeScript({
-            target: { tabId: activeTab.id },
+            target: { tabId: targetTab.id },
             files: ['content.js']
           });
-          await chrome.tabs.sendMessage(activeTab.id, {
+          await chrome.tabs.sendMessage(targetTab.id, {
             action: 'simulate_input',
             ...message.payload
           });
-          sendResponse({ status: 'delivered_after_injection', tabId: activeTab.id });
+          sendResponse({ status: 'delivered_after_injection', tabId: targetTab.id, title: targetTab.title });
         } catch (injectErr) {
           sendResponse({ status: 'injection_failed', error: injectErr.message });
         }

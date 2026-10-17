@@ -144,16 +144,26 @@
   <div id="textModal" class="overlay hidden">
     <div class="modal card" style="max-width: 480px;">
       <div class="modal-header" style="text-align: left; display: flex; justify-content: space-between; align-items: center;">
-        <h3>Type Text on Remote Page</h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.4rem;">⌨️</span>
+          <h3 style="font-size:1.1rem; color:#fff;">Type on Remote Web Page</h3>
+        </div>
         <button id="btnCloseTextModal" class="btn-close">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="hint" style="margin-bottom: 10px;">Type or paste text to inject into the active input element or web page:</p>
-        <textarea id="remoteTextInput" class="textarea-field" rows="4" placeholder="Type words, search queries, or paste text here..."></textarea>
+        <p class="hint" style="margin-bottom: 8px;">Type search query, words, or paste text to inject into the active element:</p>
+        <textarea id="remoteTextInput" class="textarea-field" rows="3" placeholder="Type search query, username, password, or paste here..."></textarea>
+        
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+          <label style="font-size:0.8rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="checkAutoEnter" checked /> Press Enter / Submit after text
+          </label>
+        </div>
+        <p class="hint" style="font-size:0.75rem; color:#60a5fa; margin-top:6px;">⚡ Tip: You can also type directly on your physical keyboard while looking at the remote screen!</p>
       </div>
       <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
         <button id="btnSendText" class="btn btn-primary">Inject Text</button>
-        <button id="btnSendEnter" class="btn btn-secondary">Send Enter Key</button>
+        <button id="btnSendEnter" class="btn btn-secondary">Send Enter ⏎</button>
       </div>
     </div>
   </div>

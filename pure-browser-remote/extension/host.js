@@ -925,15 +925,14 @@
   // -------------------------------------------------------------
   async function updateActiveTabDisplay() {
     try {
-      const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-      if (tab) {
-        activeTabTitle.textContent = tab.title || 'Untitled Tab';
-        activeTabUrl.textContent = tab.url || 'No URL';
-        targetTabStatus.textContent = tab.title ? tab.title.slice(0, 25) + '...' : 'Active Tab';
-      } else {
-        activeTabTitle.textContent = 'No active window tab found';
-        activeTabUrl.textContent = '--';
-      }
+      chrome.runtime.sendMessage({ type: 'GET_TARGET_TAB' }, (res) => {
+        if (chrome.runtime.lastError || !res) return;
+        if (res.title) {
+          activeTabTitle.textContent = res.title;
+          activeTabUrl.textContent = res.url || '--';
+          targetTabStatus.textContent = res.title ? res.title.slice(0, 25) + '...' : 'Active Web Tab';
+        }
+      });
     } catch (e) {}
   }
 

@@ -60,6 +60,7 @@
   const remoteTextInput = document.getElementById('remoteTextInput');
   const btnSendText = document.getElementById('btnSendText');
   const btnSendEnter = document.getElementById('btnSendEnter');
+  const checkAutoEnter = document.getElementById('checkAutoEnter');
 
   const toastContainer = document.getElementById('toastContainer');
 
@@ -881,32 +882,65 @@
     sendData({ type: 'scroll', dx: 0, dy: 350, x: 0.5, y: 0.5 });
   });
 
-  // Keyboard Shortcuts (Arrow keys & Page navigation)
+  // Real-time Keyboard Capture & Remote Input Routing
   window.addEventListener('keydown', (e) => {
-    if (document.activeElement === remoteUrlInput || document.activeElement === remoteTextInput) {
+    // If user is actively typing in a local viewer input (address bar, PIN, or text modal)
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
       return;
     }
 
-    if (e.key === 'ArrowUp') {
-      sendData({ type: 'scroll', dx: 0, dy: -150, x: 0.5, y: 0.5 });
-      e.preventDefault();
-    } else if (e.key === 'ArrowDown') {
-      sendData({ type: 'scroll', dx: 0, dy: 150, x: 0.5, y: 0.5 });
-      e.preventDefault();
-    } else if (e.key === 'PageUp') {
+    // Don't intercept browser developer tools, reload, or system shortcuts
+    if (e.key === 'F12' || (e.ctrlKey && e.key.toLowerCase() === 'r') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')) {
+      return;
+    }
+
+    // Only route if WebRTC is connected
+    if (!pc || pc.connectionState !== 'connected') {
+      return;
+    }
+
+    // Escape closes modal
+    if (e.key === 'Escape') {
+      textModal.classList.add('hidden');
+      return;
+    }
+
+    // Page Navigation / Scroll keys
+    if (e.key === 'PageUp') {
       sendData({ type: 'scroll', dx: 0, dy: -500, x: 0.5, y: 0.5 });
       e.preventDefault();
-    } else if (e.key === 'PageDown' || e.key === ' ') {
+      return;
+    } else if (e.key === 'PageDown') {
       sendData({ type: 'scroll', dx: 0, dy: 500, x: 0.5, y: 0.5 });
       e.preventDefault();
+      return;
     } else if (e.key === 'Home') {
       sendData({ type: 'scroll_top' });
       e.preventDefault();
+      return;
     } else if (e.key === 'End') {
       sendData({ type: 'scroll_bottom' });
       e.preventDefault();
-    } else if (e.key === 'Escape') {
-      textModal.classList.add('hidden');
+      return;
+    }
+
+    // Real-time Keystrokes & Typing directly into the remote web page
+    if (e.key === 'Backspace') {
+      sendData({ type: 'keydown', key: 'Backspace', code: 'Backspace' });
+      e.preventDefault();
+    } else if (e.key === 'Enter') {
+      sendData({ type: 'keydown', key: 'Enter', code: 'Enter' });
+      e.preventDefault();
+    } else if (e.key === 'Tab') {
+      sendData({ type: 'keydown', key: 'Tab', code: 'Tab' });
+      e.preventDefault();
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      sendData({ type: 'keydown', key: e.key, code: e.code });
+      e.preventDefault();
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      // Single printable character (letter, number, symbol, space)
+      sendData({ type: 'type', text: e.key });
+      e.preventDefault();
     }
   });
 
@@ -943,10 +977,18 @@
   btnSendText.addEventListener('click', () => {
     const text = remoteTextInput.value;
     if (text) {
-      sendData({ type: 'type', text });
+      const shouldSubmit = checkAutoEnter ? checkAutoEnter.checked : true;
+      sendData({ type: 'type', text, submit: shouldSubmit });
       showToast('Text injected to page');
       remoteTextInput.value = '';
       textModal.classList.add('hidden');
+    }
+  });
+
+  remoteTextInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      btnSendText.click();
     }
   });
 
