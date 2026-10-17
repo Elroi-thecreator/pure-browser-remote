@@ -32,6 +32,8 @@
 
     <div class="toolbar-right">
       <button id="btnOpenTextModal" class="tool-btn" title="Send Text or Keystrokes">⌨️ Type Text</button>
+      <button id="btnScrollUp" class="tool-btn" title="Scroll Up">▲ Up</button>
+      <button id="btnScrollDown" class="tool-btn" title="Scroll Down">▼ Down</button>
       <button id="btnScrollTop" class="tool-btn" title="Scroll to Top">⬆ Top</button>
       <button id="btnScrollBottom" class="tool-btn" title="Scroll to Bottom">⬇ Bottom</button>
       <button id="btnFullscreen" class="tool-btn" title="Toggle Fullscreen">⛶</button>
@@ -45,6 +47,12 @@
       <video id="remoteVideo" autoplay playsinline muted></video>
       <div id="virtualClickMarker" class="click-marker hidden"></div>
     </div>
+
+    <!-- Floating On-Screen Scroll Quick-Dock (Ideal for mobile & touch) -->
+    <aside id="floatingScrollDock" class="scroll-dock hidden">
+      <button id="dockScrollUp" class="dock-btn" title="Scroll Up">▲</button>
+      <button id="dockScrollDown" class="dock-btn" title="Scroll Down">▼</button>
+    </aside>
   </main>
 
   <!-- Connect Session Modal -->

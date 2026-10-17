@@ -237,11 +237,31 @@
         }
 
         case 'scroll': {
+          // 1. Dispatch synthetic WheelEvent so dynamic JS apps and canvas listen to it
+          const wheelEvt = new WheelEvent('wheel', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            clientX,
+            clientY,
+            deltaX: dx || 0,
+            deltaY: dy || 0,
+            deltaMode: 0
+          });
+          target.dispatchEvent(wheelEvt);
+
+          // 2. Perform DOM scroll on container or window
           const scrollTarget = getScrollableContainer(target);
-          if (scrollTarget === window) {
-            window.scrollBy({ left: dx || 0, top: dy || 0, behavior: 'instant' });
+          if (scrollTarget === window || scrollTarget === document.documentElement || scrollTarget === document.body) {
+            window.scrollBy({ left: dx || 0, top: dy || 0, behavior: 'smooth' });
+            if (dy) {
+              document.documentElement.scrollTop += dy;
+              document.body.scrollTop += dy;
+            }
           } else {
-            scrollTarget.scrollBy({ left: dx || 0, top: dy || 0, behavior: 'instant' });
+            scrollTarget.scrollBy({ left: dx || 0, top: dy || 0, behavior: 'smooth' });
+            if (dy) scrollTarget.scrollTop += dy;
+            if (dx) scrollTarget.scrollLeft += dx;
           }
           break;
         }
@@ -261,14 +281,25 @@
           activeEl.dispatchEvent(kEvt);
 
           // Handle Backspace on input
-          if (key === 'Backspace' && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
-            const start = activeEl.selectionStart;
-            const end = activeEl.selectionEnd;
-            if (start === end && start > 0) {
-              activeEl.value = activeEl.value.slice(0, start - 1) + activeEl.value.slice(end);
-              activeEl.selectionStart = activeEl.selectionEnd = start - 1;
-              activeEl.dispatchEvent(new Event('input', { bubbles: true }));
+          const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+          if (isInputFocused) {
+            if (key === 'Backspace' && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+              const start = activeEl.selectionStart;
+              const end = activeEl.selectionEnd;
+              if (start === end && start > 0) {
+                activeEl.value = activeEl.value.slice(0, start - 1) + activeEl.value.slice(end);
+                activeEl.selectionStart = activeEl.selectionEnd = start - 1;
+                activeEl.dispatchEvent(new Event('input', { bubbles: true }));
+              }
             }
+          } else {
+            // Handle Keyboard navigation scrolling when no input is focused
+            if (key === 'ArrowDown') window.scrollBy({ top: 150, behavior: 'smooth' });
+            else if (key === 'ArrowUp') window.scrollBy({ top: -150, behavior: 'smooth' });
+            else if (key === 'PageDown' || (key === ' ' && !modifiers?.shift)) window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+            else if (key === 'PageUp' || (key === ' ' && modifiers?.shift)) window.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
+            else if (key === 'Home') window.scrollTo({ top: 0, behavior: 'smooth' });
+            else if (key === 'End') window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
           }
           break;
         }

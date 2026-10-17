@@ -21,10 +21,18 @@
   const remoteUrlInput = document.getElementById('remoteUrlInput');
   const btnNavigate = document.getElementById('btnNavigate');
   const btnReloadTab = document.getElementById('btnReloadTab');
+  const btnScrollUp = document.getElementById('btnScrollUp');
+  const btnScrollDown = document.getElementById('btnScrollDown');
   const btnScrollTop = document.getElementById('btnScrollTop');
   const btnScrollBottom = document.getElementById('btnScrollBottom');
   const btnFullscreen = document.getElementById('btnFullscreen');
   const btnDisconnect = document.getElementById('btnDisconnect');
+
+  // Floating Scroll Quick-Dock (Mobile / Touch)
+  const floatingScrollDock = document.getElementById('floatingScrollDock');
+  const dockScrollUp = document.getElementById('dockScrollUp');
+  const dockScrollDown = document.getElementById('dockScrollDown');
+
 
   // Text Modal Elements
   const btnOpenTextModal = document.getElementById('btnOpenTextModal');
@@ -180,6 +188,7 @@
       setStatus('connected');
       connectOverlay.classList.add('hidden');
       viewerToolbar.classList.remove('hidden');
+      floatingScrollDock.classList.remove('hidden');
       startTelemetryStats();
       showToast('Live stream connected!');
     };
@@ -360,6 +369,7 @@
     remoteVideo.srcObject = null;
     connectOverlay.classList.remove('hidden');
     viewerToolbar.classList.add('hidden');
+    floatingScrollDock.classList.add('hidden');
     btnConnect.disabled = false;
     btnConnect.querySelector('.btn-text').textContent = 'Connect to Host';
     setStatus('disconnected');
@@ -537,6 +547,24 @@
   btnReloadTab.addEventListener('click', () => {
     sendData({ type: 'tab_action', action: 'reload' });
     showToast('Reloaded remote tab');
+  });
+
+  btnScrollUp.addEventListener('click', () => {
+    sendData({ type: 'scroll', dy: -280 });
+  });
+
+  btnScrollDown.addEventListener('click', () => {
+    sendData({ type: 'scroll', dy: 280 });
+  });
+
+  dockScrollUp.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sendData({ type: 'scroll', dy: -280 });
+  });
+
+  dockScrollDown.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sendData({ type: 'scroll', dy: 280 });
   });
 
   btnScrollTop.addEventListener('click', () => {
