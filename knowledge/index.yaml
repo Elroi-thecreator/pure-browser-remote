@@ -1,7 +1,7 @@
 project: "Chrome OS Remote Desktop & Pure Browser Remote"
-version: "1.4.0"
+version: "1.5.0"
 last_updated: "2026-10-17"
-knowledge_units_count: 14
+knowledge_units_count: 15
 
 domains:
   architecture:
@@ -54,6 +54,10 @@ domains:
     - id: "PROD-002"
       title: "Render Blueprint Specification and Cloud Relay Infrastructure"
       file: "product/PROD-002-render-blueprint-specification.yaml"
+      status: "approved"
+    - id: "PROD-003"
+      title: "Chrome Web Store Publishing and Zero-Privilege Distribution Protocol"
+      file: "product/PROD-003-chrome-web-store-publishing-protocol.yaml"
       status: "approved"
   decisions:
     - id: "ADR-001"

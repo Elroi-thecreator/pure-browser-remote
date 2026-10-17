@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Pure Browser Remote</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .privacy-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 32px;
+      background: var(--bg-card, #1e293b);
+      border-radius: 12px;
+      border: 1px solid var(--border, #334155);
+      color: #e2e8f0;
+      line-height: 1.7;
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 8px; color: #60a5fa; }
+    h2 { font-size: 1.25rem; margin-top: 24px; margin-bottom: 8px; color: #93c5fd; }
+    p, li { font-size: 0.95rem; color: #cbd5e1; }
+    ul { padding-left: 20px; }
+    .updated-date { font-size: 0.85rem; color: #94a3b8; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+  <div class="privacy-container">
+    <h1>Privacy Policy</h1>
+    <div class="updated-date">Last Updated: October 17, 2026</div>
+
+    <p><strong>Pure Browser Remote</strong> ("we", "our", or "the extension") provides zero-privilege in-browser remote screen sharing and tab control. Your privacy and security are paramount.</p>
+
+    <h2>1. Data We Do NOT Collect</h2>
+    <ul>
+      <li>We do NOT track or store your browsing history.</li>
+      <li>We do NOT capture, store, or record your screen streams on our servers. Screen media travels directly between your devices via encrypted peer-to-peer WebRTC connections.</li>
+      <li>We do NOT collect personal identity records, payment details, or location data.</li>
+      <li>We do NOT sell, rent, or monetize your data under any circumstances.</li>
+    </ul>
+
+    <h2>2. Data Handled Strictly for Functionality</h2>
+    <ul>
+      <li><strong>Authentication Information:</strong> If you use Account Mode, usernames and hashed passwords (salted with PBKDF2) are stored securely on the signaling relay server solely to authenticate your devices and associate your remote workstations with your account.</li>
+      <li><strong>Device Identifiers & Presence:</strong> User-defined device names (e.g. "Work Station") and generated device IDs are maintained in memory and persistent storage solely to display online/offline presence on your personal dashboard.</li>
+      <li><strong>Temporary Signaling Tokens:</strong> Short-lived WebRTC SDP offers, answers, and ICE candidate coordinates are relayed through the signaling server exclusively to establish the peer-to-peer connection, after which video and input channels flow directly between peers.</li>
+      <li><strong>Local Preferences:</strong> User settings (such as cursor visibility and signaling server URL) are stored exclusively on your device via <code>chrome.storage.local</code>.</li>
+    </ul>
+
+    <h2>3. Encryption and Security</h2>
+    <p>All signaling communication is protected by transport-layer encryption (HTTPS and WSS). Video and remote input data are secured end-to-end via standard WebRTC DTLS/SRTP encryption protocols.</p>
+
+    <h2>4. Third-Party Sharing</h2>
+    <p>We do not share any information with third parties, advertisers, or tracking services. No analytics SDKs or third-party tracking scripts are bundled in the extension or viewer.</p>
+
+    <h2>5. Contact Us</h2>
+    <p>If you have any questions or concerns regarding this policy, please reach out via our GitHub repository or contact the project maintainers.</p>
+  </div>
+</body>
+</html>

@@ -35,6 +35,16 @@ app.get('/host', (req, res) => {
   }
 });
 
+// Privacy policy endpoint for Chrome Web Store compliance
+app.get('/privacy', (req, res) => {
+  const privacyPath = path.join(viewerPath, 'privacy.html');
+  if (fs.existsSync(privacyPath)) {
+    res.sendFile(privacyPath);
+  } else {
+    res.status(404).send('Privacy policy document not found');
+  }
+});
+
 // -------------------------------------------------------------
 // Persistent Auth & Device Store (Zero External DB Dependencies)
 // -------------------------------------------------------------

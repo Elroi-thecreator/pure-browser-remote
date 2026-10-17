@@ -3,6 +3,11 @@
   "name": "Pure Browser Remote Host",
   "version": "1.0.0",
   "description": "Zero-privilege pure browser remote screen sharing and web tab remote control.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": [
     "desktopCapture",
     "tabs",
@@ -14,7 +19,12 @@
     "<all_urls>"
   ],
   "action": {
-    "default_title": "Open Pure Browser Remote Control Panel"
+    "default_title": "Open Pure Browser Remote Control Panel",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
