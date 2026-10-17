@@ -1,0 +1,18 @@
+id: "DEV-006"
+type: "development"
+title: "Device State Management and Token-Based WebSocket Handshake"
+domain: "networking-protocol"
+status: "approved"
+version: "1.0.0"
+rule: "WebSocket connections for account-based devices must authenticate using Bearer tokens and publish presence state updates upon connection and disconnection events."
+do:
+  - "Store authentication tokens securely in chrome.storage.local (Host) and localStorage (Viewer)."
+  - "Transmit token during initial WebSocket handshake payload or connection query parameter."
+  - "Emit real-time device status changes (online/offline) to all active viewer sessions under the same account."
+  - "Gracefully fall back to PIN pairing if a user is unauthenticated."
+dont:
+  - "Do not block WebSocket keepalive heartbeats during authentication token validation."
+reason: "Real-time presence indicators on the client dashboard prevent viewers from attempting to connect to offline or asleep hosts."
+related_items:
+  - "ARCH-004"
+  - "DEV-005"

@@ -11,6 +11,7 @@
   <!-- Floating Navigation & Controls Toolbar -->
   <header id="viewerToolbar" class="toolbar hidden">
     <div class="toolbar-left">
+      <button id="btnReturnDashboard" class="tool-btn btn-secondary" title="Return to Device Dashboard" style="display:none;">◀ Dashboard</button>
       <div class="brand">
         <span class="brand-icon">🌐</span>
         <span class="brand-text">Browser Remote</span>
@@ -55,36 +56,86 @@
     </aside>
   </main>
 
-  <!-- Connect Session Modal -->
+  <!-- Connect Session Modal & Device Dashboard -->
   <div id="connectOverlay" class="overlay">
     <div class="modal card">
       <div class="modal-header">
         <div class="modal-icon">🌐</div>
         <h2>Pure Browser Remote</h2>
-        <p class="subtitle">Enter the 6-digit Room PIN displayed on the host browser extension.</p>
+        <p class="subtitle">Access your personal computers without admin rights or PIN codes.</p>
       </div>
+
+      <!-- Mode Switcher Tabs -->
+      <nav class="modal-tabs">
+        <button id="tabViewerAccount" class="modal-tab active">👤 My Devices</button>
+        <button id="tabViewerPin" class="modal-tab">🔑 Guest PIN</button>
+      </nav>
 
       <div class="modal-body">
         <div id="alertBox" class="alert hidden"></div>
 
-        <div class="form-group">
-          <label for="serverUrlInput">Signaling Server URL</label>
+        <!-- Shared Server URL -->
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="serverUrlInput">Signaling Relay URL</label>
           <input type="text" id="serverUrlInput" class="input-field" value="ws://localhost:8080" placeholder="ws://localhost:8080 or wss://relay.onrender.com" />
         </div>
 
-        <div class="form-group">
-          <label for="pinInput">6-Digit Room PIN</label>
-          <input type="text" id="pinInput" class="input-field pin-field" maxlength="6" placeholder="123456" autocomplete="off" autofocus />
+        <!-- Mode A: Account Login / Register Form (when logged out) -->
+        <div id="viewerAuthSection" style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="form-group">
+            <label for="viewerUsername">Account Username</label>
+            <input type="text" id="viewerUsername" class="input-field" placeholder="Enter username" autocomplete="username" />
+          </div>
+          <div class="form-group">
+            <label for="viewerPassword">Password</label>
+            <input type="password" id="viewerPassword" class="input-field" placeholder="Enter password" autocomplete="current-password" />
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+            <button id="btnViewerLogin" class="btn btn-primary btn-block">🔐 Sign In</button>
+            <button id="btnViewerRegister" class="btn btn-secondary btn-block">✨ Create Account</button>
+          </div>
+          <p class="hint" style="text-align: center; margin-top: 4px;">Log in to view all your online workstations and connect with 1 click.</p>
         </div>
 
-        <button id="btnConnect" class="btn btn-primary btn-block">
-          <span class="btn-text">Connect to Host</span>
-          <span class="btn-spinner hidden"></span>
-        </button>
+        <!-- Mode A: Account Device Dashboard (when logged in) -->
+        <div id="viewerDashboardSection" class="hidden" style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- User Profile Bar -->
+          <div class="dashboard-user-bar">
+            <span class="user-greeting">Signed in as <strong id="loggedUsername">@user</strong></span>
+            <button id="btnViewerLogout" class="btn btn-secondary btn-sm">Sign Out</button>
+          </div>
+
+          <!-- Devices Header -->
+          <div class="dashboard-title-row">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: #fff;">My Remote Workstations</h3>
+            <button id="btnRefreshDevices" class="btn btn-secondary btn-sm" title="Refresh device status">🔄 Refresh</button>
+          </div>
+
+          <!-- Device Card List -->
+          <div id="devicesContainer" class="device-list">
+            <div class="empty-state">Loading your registered devices...</div>
+          </div>
+        </div>
+
+        <!-- Mode B: Guest Room PIN Section -->
+        <div id="viewerPinSection" class="hidden" style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="form-group">
+            <label for="pinInput">6-Digit Room PIN</label>
+            <input type="text" id="pinInput" class="input-field pin-field" maxlength="6" placeholder="123456" autocomplete="off" />
+          </div>
+
+          <button id="btnConnectPin" class="btn btn-primary btn-block">
+            <span class="btn-text">Connect to Host via PIN</span>
+            <span class="btn-spinner hidden"></span>
+          </button>
+          <p class="hint" style="text-align: center;">Enter the 6-digit code shown on the host extension control panel.</p>
+        </div>
+
       </div>
 
       <div class="modal-footer">
-        <p class="hint">100% In-Browser. No native installations or admin privileges required.</p>
+        <p class="hint">100% In-Browser. Zero installation and zero administrator privileges required.</p>
       </div>
     </div>
   </div>

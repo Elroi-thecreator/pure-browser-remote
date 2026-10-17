@@ -1,7 +1,7 @@
 project: "Chrome OS Remote Desktop & Pure Browser Remote"
-version: "1.3.0"
-last_updated: "2026-10-16"
-knowledge_units_count: 12
+version: "1.4.0"
+last_updated: "2026-10-17"
+knowledge_units_count: 14
 
 domains:
   architecture:
@@ -16,6 +16,10 @@ domains:
     - id: "ARCH-003"
       title: "Pure In-Browser Remote Control Architecture (Zero Native Bridge)"
       file: "architecture/ARCH-003-pure-browser-remote-topology.yaml"
+      status: "approved"
+    - id: "ARCH-004"
+      title: "Account-Based Device Registry and WebRTC Session Authorization"
+      file: "architecture/ARCH-004-account-based-device-registry.yaml"
       status: "approved"
   development:
     - id: "DEV-001"
@@ -37,6 +41,10 @@ domains:
     - id: "DEV-005"
       title: "Offscreen Document Media and Stream Processing in Manifest V3"
       file: "development/DEV-005-mv3-offscreen-document-media.yaml"
+      status: "approved"
+    - id: "DEV-006"
+      title: "Device State Management and Token-Based WebSocket Handshake"
+      file: "development/DEV-006-token-based-websocket-handshake.yaml"
       status: "approved"
   product:
     - id: "PROD-001"

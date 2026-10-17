@@ -99,21 +99,47 @@ npm start
    `pure-browser-remote/extension`
 4. The **Host Control Center** tab (`host.html`) will automatically open.
 
-### Step 3: Start Screen Sharing & Hosting
-1. On the **Host Control Center** page:
-   - Click **🎥 Share Screen / Tab** and select your entire screen or a specific tab.
-   - Note the 6-digit **Room PIN** (e.g. `481923`).
-   - Click **🚀 Start Hosting**.
+### Step 3: Start Screen Sharing & Choose Host Mode
+
+#### Option A: Account Mode (Recommended - Zero PIN, 1-Click Connect)
+1. On the **Host Control Center** page, select the **👤 Account Mode** tab.
+2. Sign in with your username & password (or click **✨ Register New Account** if first time).
+3. Set your workstation's name (e.g. `Office PC`, `Work Laptop`).
+4. Click **🎥 Share Screen / Tab** and select your entire screen or a specific tab.
+5. Your device is now registered and marked **Online** in your account!
+
+#### Option B: Guest PIN Mode (Fallback)
+1. Select the **🔑 Guest PIN Mode** tab.
+2. Note the 6-digit **Room PIN** (e.g. `481923`).
+3. Click **🚀 Start Guest Hosting**.
+
+---
 
 ### Step 4: Connect from Any Phone or Laptop
-1. Open any browser on your network or phone:
-   `http://localhost:8080` (or `http://<HOST_IP>:8080`)
-2. Enter the **6-digit PIN** and tap **Connect to Host**.
-3. Live 60 FPS remote screen stream starts immediately!
-   - **Click / Tap**: Interacts with links, buttons, and form inputs on the active web page.
-   - **Scroll**: Two-finger drag on mobile or mouse wheel scrolls the page.
-   - **Type Text**: Click **⌨️ Type Text** in the toolbar to inject queries or passwords directly into the active field.
-   - **Navigate**: Type any website URL in the top address bar and click **Go** to browse the web remotely.
+
+#### Via Account Dashboard (1-Click):
+1. Open the Viewer on your phone or laptop: `https://your-app.onrender.com` (or `http://localhost:8080`).
+2. Log in with your username & password.
+3. You will see **My Remote Workstations** showing live online/offline presence for all your computers.
+4. Click **Connect 🚀** next to your workstation. WebRTC connects automatically!
+
+#### Via Guest PIN:
+1. Select the **🔑 Guest PIN** tab on the Viewer.
+2. Enter the 6-digit PIN and tap **Connect to Host via PIN**.
+
+---
+
+### Step 5: Remote Control & Navigation Features
+
+- **Click / Tap**: Interacts with links, buttons, and form inputs on the active web page.
+- **Page Scrolling**:
+  - **Mouse Wheel**: Smoothly scrolls web pages and scrollable containers.
+  - **Toolbar Buttons**: Click **▲ Up**, **▼ Down**, **⬆ Top**, or **⬇ Bottom** in the top bar.
+  - **On-Screen Floating Dock**: Tap the floating dock buttons (**▲ / ▼**) on mobile devices.
+  - **Keyboard Navigation**: Press **Arrow Up / Down**, **Page Up / Down**, or **Home / End** to navigate pages.
+- **Type Text**: Click **⌨️ Type Text** in the toolbar to inject queries or passwords directly into the active field.
+- **Remote Address Bar**: Type any website URL in the top address bar and click **Go** to browse the web remotely.
+- **Switch Back to Dashboard**: In Account Mode, click **◀ Dashboard** at any time to return to your workstation list.
 
 ---
 
@@ -122,8 +148,8 @@ npm start
 Deploy the signaling relay so it is accessible from anywhere on the internet without port forwarding:
 
 ### Deploy to Render:
-1. Push `pure-browser-remote/signaling-server` and `pure-browser-remote/viewer` to a GitHub repository.
-2. In [Render Dashboard](https://dashboard.render.com/), create a new **Web Service**.
+1. Push this repository to GitHub.
+2. In [Render Dashboard](https://dashboard.render.com/), create a new **Web Service** or use the included `render.yaml` Blueprint.
 3. Set:
    - **Build Command**: `npm install`
    - **Start Command**: `node server.js`
@@ -139,9 +165,13 @@ Deploy the signaling relay so it is accessible from anywhere on the internet wit
 | :--- | :--- | :--- |
 | **Admin Privileges Required** | **NO (0% Admin)** | YES |
 | **Native Binaries / Python** | **NONE** | Required |
+| **Account-Based Device Dashboard** | **YES (Zero PIN 1-Click)** | Often requires cloud account |
+| **Guest PIN Code Pairing** | **YES (Instant fallback)** | Common |
 | **Install Friction** | 1-click extension load | Multi-step registry & pip setup |
 | **Works on Chromebooks** | **YES** | NO |
+| **Full Page Scrolling** | **Wheel + Touch Dock + Keys** | OS-level |
 | **Web Tab Control & Typing** | **Full DOM Injection** | OS-level |
 | **Remote Address Bar** | **YES** | NO |
 | **Visual Remote Pointer** | **Built-in glowing overlay** | OS cursor |
-| **Mobile Web Access** | **YES (Touch gestures)** | Requires native client app |
+| **Mobile Web Access** | **YES (Touch gestures & dock)** | Requires native client app |
+

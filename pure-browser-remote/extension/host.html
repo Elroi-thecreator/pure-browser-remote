@@ -133,8 +133,38 @@
     }
     .badge-warn { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
     .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-neutral { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); border: 1px solid var(--border); }
 
-    /* Inputs & PIN */
+    /* Mode Navigation Tabs */
+    .mode-nav {
+      display: flex;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    .mode-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+    .mode-btn.active {
+      color: #fff;
+      background: var(--primary);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Inputs & Forms */
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
     .input-field {
@@ -147,6 +177,27 @@
       outline: none;
     }
     .input-field:focus { border-color: var(--primary); }
+
+    /* Account Profile Display Box */
+    .account-profile-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .account-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .account-meta-label { color: var(--text-muted); }
+    .account-meta-val { font-weight: 600; color: #fff; }
+
+    /* PIN Box */
     .pin-box {
       background: rgba(0, 0, 0, 0.25);
       border: 1px solid var(--border);
@@ -296,6 +347,11 @@
       <span class="status-val" id="signalingStatusText">Disconnected</span>
     </div>
     <div class="status-item">
+      <span class="dot dot-inactive" id="accountDot"></span>
+      <span class="status-label">Device Account:</span>
+      <span class="status-val" id="accountStatusText">Logged Out</span>
+    </div>
+    <div class="status-item">
       <span class="dot dot-inactive" id="captureDot"></span>
       <span class="status-label">Screen Capture:</span>
       <span class="status-val" id="captureStatusText">Inactive</span>
@@ -314,40 +370,100 @@
   <!-- Main Grid Dashboard -->
   <main class="dashboard-grid">
 
-    <!-- Card 1: Cloud Signaling & Room PIN -->
+    <!-- Card 1: Cloud Signaling & Host Mode (Account Mode / Guest PIN) -->
     <section class="card">
       <div class="card-header">
         <div class="card-title">
           <span>📡</span>
-          <h2>Signaling & Room PIN</h2>
+          <h2>Signaling & Host Mode</h2>
         </div>
-        <span id="roomBadge" class="badge badge-warn">Not Hosting</span>
+        <span id="roomBadge" class="badge badge-warn">Offline</span>
       </div>
 
+      <!-- Mode Switcher Tabs -->
+      <nav class="mode-nav">
+        <button id="tabBtnAccount" class="mode-btn active">👤 Account Mode (Zero-PIN)</button>
+        <button id="tabBtnPin" class="mode-btn">🔑 Guest PIN Mode</button>
+      </nav>
+
+      <!-- Shared Signaling Server URL Input -->
       <div class="form-group">
-        <label for="signalingUrl">Signaling WebSocket URL</label>
+        <label for="signalingUrl">Signaling Server URL</label>
         <input type="text" id="signalingUrl" class="input-field" value="ws://localhost:8080" placeholder="ws://localhost:8080 or wss://relay.onrender.com" />
       </div>
 
-      <div class="pin-box">
-        <span class="pin-label">Room PIN</span>
-        <div class="pin-number" id="pinDisplay">------</div>
-        <div class="pin-actions">
-          <button id="btnGeneratePin" class="btn btn-secondary btn-sm">🎲 Refresh PIN</button>
-          <button id="btnCopyPin" class="btn btn-secondary btn-sm">📋 Copy PIN</button>
+      <!-- Account Mode View: Logged Out -->
+      <div id="accountLoggedOutSection" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label for="hostUsername">Username</label>
+          <input type="text" id="hostUsername" class="input-field" placeholder="Enter username (min 3 chars)" autocomplete="username" />
         </div>
+        <div class="form-group">
+          <label for="hostPassword">Password</label>
+          <input type="password" id="hostPassword" class="input-field" placeholder="Enter password (min 6 chars)" autocomplete="current-password" />
+        </div>
+        <div class="form-group">
+          <label for="hostDeviceName">This Device Name</label>
+          <input type="text" id="hostDeviceName" class="input-field" placeholder="e.g. Work PC, Office Laptop" value="Work Station" />
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          <button id="btnHostLogin" class="btn btn-primary btn-block">🔐 Sign In & Connect Device</button>
+          <button id="btnHostRegister" class="btn btn-secondary btn-block">✨ Register New Account</button>
+        </div>
+        <p class="subtitle" style="text-align: center; font-size: 0.76rem;">Account mode allows 1-click connection from your Viewer without typing PINs.</p>
       </div>
 
-      <div class="action-buttons">
-        <button id="btnStartHosting" class="btn btn-success btn-block">🚀 Start Hosting</button>
-        <button id="btnStopHosting" class="btn btn-danger btn-block hidden">🛑 Stop Hosting</button>
+      <!-- Account Mode View: Logged In -->
+      <div id="accountLoggedInSection" class="hidden" style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="account-profile-box">
+          <div class="account-meta-row">
+            <span class="account-meta-label">Account:</span>
+            <span id="accountUserLabel" class="account-meta-val" style="color: #60a5fa;">--</span>
+          </div>
+          <div class="account-meta-row">
+            <span class="account-meta-label">Device Name:</span>
+            <span id="accountDeviceLabel" class="account-meta-val">--</span>
+          </div>
+          <div class="account-meta-row">
+            <span class="account-meta-label">Device ID:</span>
+            <span id="accountDeviceIdLabel" class="account-meta-val" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">--</span>
+          </div>
+          <div class="account-meta-row">
+            <span class="account-meta-label">Registry Status:</span>
+            <span id="accountOnlineBadge" class="badge badge-success">Online & Listed</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button id="btnDisconnectHost" class="btn btn-danger btn-block">Stop Device Host</button>
+          <button id="btnHostLogout" class="btn btn-secondary btn-block">Log Out</button>
+        </div>
+        <p class="subtitle" style="text-align: center; font-size: 0.76rem;">Open Viewer on any device, log into this account, and click <strong>Connect</strong>!</p>
       </div>
 
-      <div class="form-group">
-        <label>Viewer Web App Link</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="viewerWebUrl" class="input-field" style="font-size:0.8rem;" readonly value="http://localhost:8080/viewer/" />
-          <button id="btnCopyViewerUrl" class="btn btn-secondary btn-sm">Copy</button>
+      <!-- Guest PIN Mode Section -->
+      <div id="pinModeSection" class="hidden" style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="pin-box">
+          <span class="pin-label">Guest Room PIN</span>
+          <div class="pin-number" id="pinDisplay">------</div>
+          <div class="pin-actions">
+            <button id="btnGeneratePin" class="btn btn-secondary btn-sm">🎲 Refresh PIN</button>
+            <button id="btnCopyPin" class="btn btn-secondary btn-sm">📋 Copy PIN</button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button id="btnStartHosting" class="btn btn-success btn-block">🚀 Start Guest Hosting</button>
+          <button id="btnStopHosting" class="btn btn-danger btn-block hidden">🛑 Stop Guest Hosting</button>
+        </div>
+
+        <div class="form-group">
+          <label>Viewer Web App Link</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="viewerWebUrl" class="input-field" style="font-size:0.8rem;" readonly value="http://localhost:8080/viewer/" />
+            <button id="btnCopyViewerUrl" class="btn btn-secondary btn-sm">Copy</button>
+          </div>
         </div>
       </div>
     </section>

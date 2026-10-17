@@ -1,0 +1,20 @@
+id: "ARCH-004"
+type: "architecture"
+title: "Account-Based Device Registry and WebRTC Session Authorization"
+domain: "authentication-security"
+status: "approved"
+version: "1.0.0"
+rule: "The remote control system must support account-based authentication allowing users to manage multiple named devices and connect directly through a device list dashboard without requiring ephemeral PIN codes."
+do:
+  - "Hash passwords securely using Node.js built-in crypto (pbkdf2Sync / scrypt) with cryptographically random salts."
+  - "Issue cryptographic session tokens for authenticated WebSocket handshakes."
+  - "Maintain a dynamic registry of devices associated with each user account."
+  - "Track real-time online/offline presence of each host device."
+  - "Directly route WebRTC signals between authenticated viewers and target host devices without exposing credentials."
+dont:
+  - "Do not store plaintext passwords."
+  - "Do not allow viewers to connect to devices belonging to other accounts without authorization."
+reason: "Entering random 6-digit PIN codes requires physical access or co-presence at both screens. An account-based model allows seamless unattended access across the user's personal workstations."
+related_items:
+  - "ARCH-003"
+  - "PROD-001"
