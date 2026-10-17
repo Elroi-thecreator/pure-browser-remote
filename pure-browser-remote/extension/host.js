@@ -44,6 +44,17 @@
   const btnStopHosting = document.getElementById('btnStopHosting');
   const viewerWebUrl = document.getElementById('viewerWebUrl');
   const btnCopyViewerUrl = document.getElementById('btnCopyViewerUrl');
+  const btnOpenViewerUrl = document.getElementById('btnOpenViewerUrl');
+  const globalViewerUrl = document.getElementById('globalViewerUrl');
+  const btnCopyGlobalViewerUrl = document.getElementById('btnCopyGlobalViewerUrl');
+  const btnOpenGlobalViewerUrl = document.getElementById('btnOpenGlobalViewerUrl');
+  const headerViewerLink = document.getElementById('headerViewerLink');
+  const accountViewerUrl = document.getElementById('accountViewerUrl');
+  const btnCopyAccountViewerUrl = document.getElementById('btnCopyAccountViewerUrl');
+  const btnOpenAccountViewerUrl = document.getElementById('btnOpenAccountViewerUrl');
+
+  const DEFAULT_CLOUD_RELAY = 'wss://pure-browser-remote-relay-8bpt.onrender.com';
+  const DEFAULT_CLOUD_VIEWER = 'https://pure-browser-remote-relay-8bpt.onrender.com/viewer/';
 
   // DOM Elements - Screen Capture & Preview
   const localPreview = document.getElementById('localPreview');
@@ -202,10 +213,11 @@
         'pbr_active_mode',
         'pbr_show_remote_cursor'
       ], (items) => {
-        if (items.pbr_signaling_url) {
+        if (items.pbr_signaling_url && !items.pbr_signaling_url.includes('localhost')) {
           signalingUrlInput.value = normalizeWsUrl(items.pbr_signaling_url);
         } else {
-          signalingUrlInput.value = 'ws://localhost:8080';
+          signalingUrlInput.value = DEFAULT_CLOUD_RELAY;
+          chrome.storage.local.set({ pbr_signaling_url: DEFAULT_CLOUD_RELAY });
         }
 
         if (items.pbr_show_remote_cursor !== undefined) {
@@ -530,7 +542,7 @@
 
   function updateViewerUrl() {
     const rawUrl = normalizeWsUrl(signalingUrlInput.value.trim());
-    let httpUrl = 'http://localhost:8080/viewer/';
+    let httpUrl = DEFAULT_CLOUD_VIEWER;
     try {
       if (rawUrl.startsWith('ws://')) {
         httpUrl = rawUrl.replace('ws://', 'http://') + '/viewer/';
@@ -538,7 +550,17 @@
         httpUrl = rawUrl.replace('wss://', 'https://') + '/viewer/';
       }
     } catch (e) {}
-    viewerWebUrl.value = `${httpUrl}?pin=${currentPin}`;
+
+    const cleanBase = httpUrl.replace(/\/+$/, '/');
+    const pinUrl = currentPin ? `${cleanBase}?pin=${currentPin}` : cleanBase;
+
+    if (globalViewerUrl) globalViewerUrl.value = cleanBase;
+    if (btnOpenGlobalViewerUrl) btnOpenGlobalViewerUrl.href = cleanBase;
+    if (headerViewerLink) headerViewerLink.href = cleanBase;
+    if (accountViewerUrl) accountViewerUrl.value = cleanBase;
+    if (btnOpenAccountViewerUrl) btnOpenAccountViewerUrl.href = cleanBase;
+    if (viewerWebUrl) viewerWebUrl.value = pinUrl;
+    if (btnOpenViewerUrl) btnOpenViewerUrl.href = pinUrl;
   }
 
   function startPinHosting() {
@@ -956,6 +978,20 @@
     navigator.clipboard.writeText(viewerWebUrl.value);
     showToast('Viewer link copied to clipboard!');
   });
+
+  if (btnCopyGlobalViewerUrl) {
+    btnCopyGlobalViewerUrl.addEventListener('click', () => {
+      navigator.clipboard.writeText(globalViewerUrl.value);
+      showToast('Viewer link copied to clipboard!');
+    });
+  }
+
+  if (btnCopyAccountViewerUrl) {
+    btnCopyAccountViewerUrl.addEventListener('click', () => {
+      navigator.clipboard.writeText(accountViewerUrl.value);
+      showToast('Viewer link copied to clipboard!');
+    });
+  }
 
   btnStartCapture.addEventListener('click', startScreenCapture);
   btnStopCapture.addEventListener('click', stopScreenCapture);

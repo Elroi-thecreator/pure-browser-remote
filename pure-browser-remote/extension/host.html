@@ -334,8 +334,11 @@
         <span class="subtitle">Zero-Admin WebRTC Screen & Tab Remote Control Host</span>
       </div>
     </div>
-    <div>
-      <span class="tag-nonadmin">100% In-Browser (No Native Installs)</span>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a id="headerViewerLink" href="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration: none; border-color: rgba(59, 130, 246, 0.5); color: #93c5fd; font-weight: 600;">
+        <span>📱 Open Web Viewer ↗</span>
+      </a>
+      <span class="tag-nonadmin">100% In-Browser</span>
     </div>
   </header>
 
@@ -380,6 +383,25 @@
         <span id="roomBadge" class="badge badge-warn">Offline</span>
       </div>
 
+      <!-- Prominent Universal Viewer Access Banner -->
+      <div class="viewer-access-box" style="background: rgba(30, 58, 138, 0.22); border: 1px solid rgba(59, 130, 246, 0.45); border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <div style="font-weight: 700; font-size: 0.85rem; color: #93c5fd; display: flex; align-items: center; gap: 6px;">
+            <span>📱</span>
+            <span>Remote Viewer Web App URL</span>
+          </div>
+          <span class="badge badge-accent" style="font-size:0.68rem; padding: 2px 6px;">Open On Any Device</span>
+        </div>
+        <p style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 8px; line-height: 1.35;">
+          Open this web address on your phone, tablet, or another computer to view & control this machine:
+        </p>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="globalViewerUrl" class="input-field" style="font-size:0.78rem; font-family:var(--font-mono); color:#60a5fa;" readonly value="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" />
+          <button id="btnCopyGlobalViewerUrl" class="btn btn-secondary btn-sm" title="Copy Viewer URL">📋 Copy</button>
+          <a id="btnOpenGlobalViewerUrl" href="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" target="_blank" class="btn btn-primary btn-sm" style="text-decoration:none;" title="Open Viewer in browser">↗️ Open</a>
+        </div>
+      </div>
+
       <!-- Mode Switcher Tabs -->
       <nav class="mode-nav">
         <button id="tabBtnAccount" class="mode-btn active">👤 Account Mode (Zero-PIN)</button>
@@ -387,10 +409,10 @@
       </nav>
 
       <!-- Shared Signaling Server URL Input -->
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom: 12px;">
         <label for="signalingUrl">Signaling Server URL</label>
-        <input type="text" id="signalingUrl" class="input-field" value="ws://localhost:8080" placeholder="ws://localhost:8080 or wss://relay.onrender.com" />
-        <span style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Cloud hosts require <code>wss://</code> (e.g. Render). Auto-upgraded automatically.</span>
+        <input type="text" id="signalingUrl" class="input-field" value="wss://pure-browser-remote-relay-8bpt.onrender.com" placeholder="wss://pure-browser-remote-relay-8bpt.onrender.com or ws://localhost:8080" />
+        <span style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Production cloud relay hosted on Render (WSS secured). Auto-detected.</span>
       </div>
 
       <!-- Account Mode View: Logged Out -->
@@ -436,6 +458,16 @@
           </div>
         </div>
 
+        <!-- Account Viewer Link -->
+        <div class="form-group" style="margin-top: 2px;">
+          <label style="color:#93c5fd; font-size:0.75rem;">📱 Connect From Your Other Device</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="accountViewerUrl" class="input-field" style="font-size:0.78rem; font-family:var(--font-mono); color:#60a5fa;" readonly value="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" />
+            <button id="btnCopyAccountViewerUrl" class="btn btn-secondary btn-sm">Copy</button>
+            <a id="btnOpenAccountViewerUrl" href="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" target="_blank" class="btn btn-primary btn-sm" style="text-decoration:none;">Open</a>
+          </div>
+        </div>
+
         <div style="display: flex; gap: 8px;">
           <button id="btnReconnectHost" class="btn btn-primary btn-block">⚡ Connect Device</button>
           <button id="btnDisconnectHost" class="btn btn-danger btn-block hidden">Stop Device Host</button>
@@ -461,10 +493,11 @@
         </div>
 
         <div class="form-group">
-          <label>Viewer Web App Link</label>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="viewerWebUrl" class="input-field" style="font-size:0.8rem;" readonly value="http://localhost:8080/viewer/" />
+          <label style="color:#93c5fd; font-size:0.75rem;">🔑 Direct Guest Viewer Link (With PIN)</label>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="viewerWebUrl" class="input-field" style="font-size:0.78rem; font-family:var(--font-mono); color:#60a5fa;" readonly value="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/?pin=" />
             <button id="btnCopyViewerUrl" class="btn btn-secondary btn-sm">Copy</button>
+            <a id="btnOpenViewerUrl" href="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" target="_blank" class="btn btn-primary btn-sm" style="text-decoration:none;">Open</a>
           </div>
         </div>
       </div>

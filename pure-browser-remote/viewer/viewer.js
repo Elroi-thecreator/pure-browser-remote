@@ -79,8 +79,10 @@
 
   // Auto-detect default signaling WebSocket URL based on current host
   const defaultProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const defaultHost = window.location.host || 'localhost:8080';
-  serverUrlInput.value = `${defaultProto}//${defaultHost}`;
+  const defaultHost = (window.location.host && !window.location.host.includes('localhost') && window.location.protocol !== 'file:')
+    ? window.location.host
+    : 'pure-browser-remote-relay-8bpt.onrender.com';
+  serverUrlInput.value = `${defaultHost.includes('onrender.com') ? 'wss:' : defaultProto}//${defaultHost}`;
 
   // Check URL parameters (e.g. ?pin=123456)
   const urlParams = new URLSearchParams(window.location.search);
