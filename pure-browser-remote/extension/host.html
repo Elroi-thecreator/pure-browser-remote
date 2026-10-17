@@ -6,25 +6,42 @@
   <title>Pure Browser Remote - Host Control Center</title>
   <style>
     :root {
-      --bg-dark: #0a0e17;
-      --bg-card: #131b2a;
-      --bg-card-hover: #1a253a;
-      --border: rgba(255, 255, 255, 0.1);
-      --text: #f1f5f9;
+      --bg-dark: #070a13;
+      --bg-surface: rgba(15, 23, 42, 0.75);
+      --bg-surface-elevated: rgba(30, 41, 59, 0.7);
+      --bg-input: rgba(8, 12, 22, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.16);
+      --border-accent: rgba(59, 130, 246, 0.35);
+      --text: #f8fafc;
       --text-muted: #94a3b8;
+      --text-dim: #64748b;
       --primary: #3b82f6;
       --primary-hover: #2563eb;
+      --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
       --success: #10b981;
+      --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
       --warning: #f59e0b;
       --danger: #ef4444;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      --accent-cyan: #38bdf8;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
-      background: var(--bg-dark);
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.8) 0%, transparent 100%);
+      background-attachment: fixed;
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       min-height: 100vh;
       padding: 24px;
       display: flex;
@@ -32,185 +49,410 @@
       gap: 20px;
     }
 
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+
     /* Header */
     .app-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
     }
+    
     .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    
+    .logo-icon-badge {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.05) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    
+    .logo-icon-badge svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: #60a5fa;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+      margin-top: 2px;
+    }
+
+    .header-actions {
       display: flex;
       align-items: center;
       gap: 12px;
     }
-    .logo-icon {
-      font-size: 2rem;
-      background: rgba(59, 130, 246, 0.15);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      border-radius: 12px;
-      padding: 6px 10px;
-    }
-    h1 { font-size: 1.35rem; font-weight: 700; color: #fff; }
-    .subtitle { font-size: 0.82rem; color: var(--text-muted); }
-    .tag-nonadmin {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
+
+    .btn-viewer-launch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.82rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      text-decoration: none;
+      color: #93c5fd;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(30, 58, 138, 0.3) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .btn-viewer-launch:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(30, 58, 138, 0.45) 100%);
+      border-color: rgba(96, 165, 250, 0.6);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
     }
 
-    /* Status Banner */
-    .status-banner {
-      display: flex;
-      justify-content: space-around;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 20px;
-      gap: 16px;
-      flex-wrap: wrap;
+    .tag-nonadmin {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
+    
+    .tag-pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.6; }
+    }
+
+    /* Global Status Indicator Banner */
+    .status-banner {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 20px;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    
     .status-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.88rem;
+      gap: 10px;
+      font-size: 0.85rem;
     }
-    .status-label { color: var(--text-muted); font-weight: 500; }
-    .status-val { font-weight: 600; color: #fff; }
+    
+    .status-label {
+      color: var(--text-dim);
+      font-weight: 500;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    
+    .status-val {
+      font-weight: 600;
+      color: var(--text);
+    }
+    
     .dot {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       display: inline-block;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
     }
-    .dot-inactive { background: var(--danger); box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
-    .dot-pending { background: var(--warning); box-shadow: 0 0 8px rgba(245, 158, 11, 0.5); }
-    .dot-active { background: var(--success); box-shadow: 0 0 10px rgba(16, 185, 129, 0.7); }
+    
+    .dot-inactive {
+      background: var(--danger);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+    }
+    
+    .dot-pending {
+      background: var(--warning);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+      animation: pulseGlow 1.5s infinite ease-in-out;
+    }
+    
+    .dot-active {
+      background: var(--success);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
 
     /* Dashboard Grid */
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 20px;
     }
+    
     .card {
-      background: var(--bg-card);
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      gap: 18px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    
     .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      padding-bottom: 10px;
+      padding-bottom: 14px;
     }
+    
     .card-title {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
-    .card-title h2 { font-size: 1.05rem; font-weight: 600; color: #fff; }
+    
+    .card-icon {
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-title h2 {
+      font-size: 1.02rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+    
     .badge {
       font-size: 0.72rem;
       font-weight: 600;
-      padding: 3px 8px;
+      padding: 4px 9px;
       border-radius: 6px;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
-    .badge-warn { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
-    .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-neutral { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); border: 1px solid var(--border); }
+    
+    .badge-warn {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+    
+    .badge-success {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    
+    .badge-neutral {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .badge-accent {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+    }
+
+    /* Viewer Access Box */
+    .viewer-access-box {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.25) 0%, rgba(15, 23, 42, 0.5) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
 
     /* Mode Navigation Tabs */
     .mode-nav {
       display: flex;
       gap: 6px;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.35);
       padding: 4px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
     }
+    
     .mode-btn {
       flex: 1;
-      padding: 8px 10px;
+      padding: 9px 12px;
       font-size: 0.8rem;
       font-weight: 600;
       color: var(--text-muted);
       background: transparent;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       text-align: center;
     }
-    .mode-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+    
+    .mode-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
     .mode-btn.active {
       color: #fff;
-      background: var(--primary);
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+      background: var(--primary-gradient);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
 
     /* Inputs & Forms */
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
-    .input-field {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      color: #fff;
-      font-size: 0.9rem;
-      outline: none;
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
-    .input-field:focus { border-color: var(--primary); }
+    
+    .form-group label {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .input-field {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .input-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22), 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .input-field::placeholder {
+      color: var(--text-dim);
+    }
 
     /* Account Profile Display Box */
     .account-profile-box {
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.35);
       border: 1px solid rgba(59, 130, 246, 0.25);
-      border-radius: 10px;
-      padding: 14px;
+      border-radius: 12px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
+    
     .account-meta-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
     }
+    
     .account-meta-label { color: var(--text-muted); }
     .account-meta-val { font-weight: 600; color: #fff; }
 
     /* PIN Box */
     .pin-box {
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 14px;
+      padding: 18px 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
     }
-    .pin-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-    .pin-number { font-family: var(--font-mono); font-size: 2rem; font-weight: 700; letter-spacing: 6px; color: #60a5fa; }
-    .pin-actions { display: flex; gap: 10px; }
+    
+    .pin-label {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    
+    .pin-number {
+      font-family: var(--font-mono);
+      font-size: 2.3rem;
+      font-weight: 700;
+      letter-spacing: 10px;
+      color: #60a5fa;
+      text-shadow: 0 0 20px rgba(96, 165, 250, 0.4);
+      padding-left: 10px; /* Offset letter spacing for visual center */
+    }
+    
+    .pin-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
 
     /* Buttons */
     .btn {
@@ -219,36 +461,100 @@
       justify-content: center;
       gap: 8px;
       padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 0.88rem;
+      border-radius: 9px;
+      font-size: 0.86rem;
       font-weight: 600;
       cursor: pointer;
       border: none;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
     }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-success { background: var(--success); color: #fff; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid var(--border); }
-    .btn-secondary:hover { background: rgba(255, 255, 255, 0.16); }
-    .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+    
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 6px 18px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .btn-success {
+      background: var(--success-gradient);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-success:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 6px 18px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-danger {
+      background: var(--danger-gradient);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: #e2e8f0;
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary:active {
+      transform: translateY(0);
+    }
+    
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      border-radius: 7px;
+    }
+    
     .btn-block { width: 100%; }
 
     /* Video Preview */
     .preview-box {
       width: 100%;
-      height: 180px;
-      background: #000;
-      border-radius: 10px;
+      height: 190px;
+      background: #020408;
+      border-radius: 12px;
       overflow: hidden;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
     }
-    #localPreview { width: 100%; height: 100%; object-fit: contain; }
+    
+    #localPreview {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    
     .placeholder {
       position: absolute;
       display: flex;
@@ -257,49 +563,113 @@
       justify-content: center;
       color: var(--text-muted);
       text-align: center;
-      gap: 6px;
-      padding: 12px;
+      gap: 8px;
+      padding: 16px;
     }
 
-    /* Toggle Switches & Toggles */
+    .placeholder-icon {
+      font-size: 2rem;
+      opacity: 0.4;
+      margin-bottom: 2px;
+    }
+
+    .placeholder-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .placeholder small {
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      max-width: 260px;
+      line-height: 1.4;
+    }
+
+    /* Toggles & Tab Info */
     .toggle-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 12px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      font-size: 0.85rem;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      transition: background 0.15s ease;
     }
-    .active-tab-box {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: 8px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .active-tab-title { font-weight: 600; font-size: 0.85rem; color: #93c5fd; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .active-tab-url { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* Console */
-    .console-card { display: flex; flex-direction: column; gap: 10px; }
-    .console-header { display: flex; justify-content: space-between; align-items: center; }
-    .console-log {
-      background: #070a10;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      height: 180px;
-      overflow-y: auto;
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
+    .toggle-row:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .toggle-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .active-tab-box {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.15) 0%, rgba(15, 23, 42, 0.4) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 10px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
       gap: 5px;
     }
-    .log-entry { line-height: 1.4; word-break: break-all; }
+    
+    .active-tab-title {
+      font-weight: 600;
+      font-size: 0.86rem;
+      color: #93c5fd;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .active-tab-url {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Console Card */
+    .console-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 12px;
+    }
+    
+    .console-log {
+      background: #040711;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 14px;
+      height: 190px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+    }
+    
+    .log-entry { line-height: 1.5; word-break: break-all; }
     .log-info { color: #94a3b8; }
     .log-success { color: #34d399; }
     .log-warn { color: #fbbf24; }
@@ -309,16 +679,33 @@
     .hidden { display: none !important; }
 
     /* Toast */
-    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 500; display: flex; flex-direction: column; gap: 10px; }
-    .toast {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      color: #fff;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
+    
+    .toast {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      animation: slideInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideInUp {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
     .toast-success { border-left: 4px solid var(--success); }
     .toast-error { border-left: 4px solid var(--danger); }
   </style>
@@ -328,17 +715,27 @@
   <!-- Top App Navigation -->
   <header class="app-header">
     <div class="logo-container">
-      <span class="logo-icon">🌐</span>
+      <div class="logo-icon-badge">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+      </div>
       <div>
-        <h1>Pure Browser Remote</h1>
-        <span class="subtitle">Zero-Admin WebRTC Screen & Tab Remote Control Host</span>
+        <h1 class="brand-title">Pure Browser Remote</h1>
+        <div class="subtitle">Zero-Admin WebRTC Screen & Tab Remote Control Host</div>
       </div>
     </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-      <a id="headerViewerLink" href="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration: none; border-color: rgba(59, 130, 246, 0.5); color: #93c5fd; font-weight: 600;">
-        <span>📱 Open Web Viewer ↗</span>
+    <div class="header-actions">
+      <a id="headerViewerLink" href="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" target="_blank" class="btn-viewer-launch">
+        <span>📱 Open Web Viewer</span>
+        <span>↗</span>
       </a>
-      <span class="tag-nonadmin">100% In-Browser</span>
+      <div class="tag-nonadmin">
+        <span class="tag-pulse-dot"></span>
+        <span>100% In-Browser</span>
+      </div>
     </div>
   </header>
 
@@ -346,7 +743,7 @@
   <section class="status-banner">
     <div class="status-item">
       <span class="dot dot-inactive" id="signalingDot"></span>
-      <span class="status-label">Signaling Server:</span>
+      <span class="status-label">Relay Server:</span>
       <span class="status-val" id="signalingStatusText">Disconnected</span>
     </div>
     <div class="status-item">
@@ -377,26 +774,26 @@
     <section class="card">
       <div class="card-header">
         <div class="card-title">
-          <span>📡</span>
+          <span class="card-icon">📡</span>
           <h2>Signaling & Host Mode</h2>
         </div>
         <span id="roomBadge" class="badge badge-warn">Offline</span>
       </div>
 
       <!-- Prominent Universal Viewer Access Banner -->
-      <div class="viewer-access-box" style="background: rgba(30, 58, 138, 0.22); border: 1px solid rgba(59, 130, 246, 0.45); border-radius: 10px; padding: 12px; margin-bottom: 12px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+      <div class="viewer-access-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div style="font-weight: 700; font-size: 0.85rem; color: #93c5fd; display: flex; align-items: center; gap: 6px;">
             <span>📱</span>
             <span>Remote Viewer Web App URL</span>
           </div>
-          <span class="badge badge-accent" style="font-size:0.68rem; padding: 2px 6px;">Open On Any Device</span>
+          <span class="badge badge-accent" style="font-size:0.68rem; padding: 2px 7px;">Open On Any Device</span>
         </div>
-        <p style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 8px; line-height: 1.35;">
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
           Open this web address on your phone, tablet, or another computer to view & control this machine:
         </p>
-        <div style="display: flex; gap: 6px;">
-          <input type="text" id="globalViewerUrl" class="input-field" style="font-size:0.78rem; font-family:var(--font-mono); color:#60a5fa;" readonly value="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" />
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="globalViewerUrl" class="input-field" style="font-size:0.78rem; font-family:var(--font-mono); color:#93c5fd; flex:1;" readonly value="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" />
           <button id="btnCopyGlobalViewerUrl" class="btn btn-secondary btn-sm" title="Copy Viewer URL">📋 Copy</button>
           <a id="btnOpenGlobalViewerUrl" href="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" target="_blank" class="btn btn-primary btn-sm" style="text-decoration:none;" title="Open Viewer in browser">↗️ Open</a>
         </div>
@@ -409,10 +806,10 @@
       </nav>
 
       <!-- Shared Signaling Server URL Input -->
-      <div class="form-group" style="margin-bottom: 12px;">
-        <label for="signalingUrl">Signaling Server URL</label>
+      <div class="form-group">
+        <label for="signalingUrl">Signaling Relay URL</label>
         <input type="text" id="signalingUrl" class="input-field" value="wss://pure-browser-remote-relay-8bpt.onrender.com" placeholder="wss://pure-browser-remote-relay-8bpt.onrender.com or ws://localhost:8080" />
-        <span style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Production cloud relay hosted on Render (WSS secured). Auto-detected.</span>
+        <span style="font-size:0.72rem; color:var(--text-dim); margin-top:2px;">Production cloud relay hosted on Render (WSS secured). Auto-detected.</span>
       </div>
 
       <!-- Account Mode View: Logged Out -->
@@ -461,8 +858,8 @@
         <!-- Account Viewer Link -->
         <div class="form-group" style="margin-top: 2px;">
           <label style="color:#93c5fd; font-size:0.75rem;">📱 Connect From Your Other Device</label>
-          <div style="display: flex; gap: 6px;">
-            <input type="text" id="accountViewerUrl" class="input-field" style="font-size:0.78rem; font-family:var(--font-mono); color:#60a5fa;" readonly value="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" />
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="accountViewerUrl" class="input-field" style="font-size:0.78rem; font-family:var(--font-mono); color:#93c5fd; flex:1;" readonly value="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" />
             <button id="btnCopyAccountViewerUrl" class="btn btn-secondary btn-sm">Copy</button>
             <a id="btnOpenAccountViewerUrl" href="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" target="_blank" class="btn btn-primary btn-sm" style="text-decoration:none;">Open</a>
           </div>
@@ -494,8 +891,8 @@
 
         <div class="form-group">
           <label style="color:#93c5fd; font-size:0.75rem;">🔑 Direct Guest Viewer Link (With PIN)</label>
-          <div style="display:flex; gap:6px;">
-            <input type="text" id="viewerWebUrl" class="input-field" style="font-size:0.78rem; font-family:var(--font-mono); color:#60a5fa;" readonly value="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/?pin=" />
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="viewerWebUrl" class="input-field" style="font-size:0.78rem; font-family:var(--font-mono); color:#93c5fd; flex:1;" readonly value="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/?pin=" />
             <button id="btnCopyViewerUrl" class="btn btn-secondary btn-sm">Copy</button>
             <a id="btnOpenViewerUrl" href="https://pure-browser-remote-relay-8bpt.onrender.com/viewer/" target="_blank" class="btn btn-primary btn-sm" style="text-decoration:none;">Open</a>
           </div>
@@ -507,7 +904,7 @@
     <section class="card">
       <div class="card-header">
         <div class="card-title">
-          <span>🖥️</span>
+          <span class="card-icon">🖥️</span>
           <h2>Screen & Tab Capture</h2>
         </div>
         <span id="captureBadge" class="badge badge-warn">No Stream</span>
@@ -516,8 +913,9 @@
       <div class="preview-box">
         <video id="localPreview" autoplay muted playsinline></video>
         <div id="noStreamPlaceholder" class="placeholder">
-          <span>No Screen Selected</span>
-          <small>Share Entire Screen or Tab to enable live WebRTC streaming</small>
+          <div class="placeholder-icon">📺</div>
+          <span class="placeholder-title">No Screen Selected</span>
+          <small>Share Entire Screen or Tab to enable live WebRTC video streaming</small>
         </div>
       </div>
 
@@ -531,14 +929,14 @@
     <section class="card">
       <div class="card-header">
         <div class="card-title">
-          <span>🎯</span>
+          <span class="card-icon">🎯</span>
           <h2>In-Tab DOM Injection & Controls</h2>
         </div>
         <span class="badge badge-success">Non-Admin Active</span>
       </div>
 
       <div class="active-tab-box">
-        <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Currently Controlled Tab</span>
+        <span style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:600; letter-spacing:0.04em;">Currently Controlled Tab</span>
         <div id="activeTabTitle" class="active-tab-title">Detecting active tab...</div>
         <div id="activeTabUrl" class="active-tab-url">--</div>
       </div>
@@ -556,7 +954,7 @@
       <div class="form-group" style="margin-top:auto;">
         <label>Quick Open Web Page for Remote Testing</label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="quickUrlInput" class="input-field" placeholder="https://wikipedia.org" value="https://wikipedia.org" />
+          <input type="text" id="quickUrlInput" class="input-field" placeholder="https://wikipedia.org" value="https://wikipedia.org" style="flex:1;" />
           <button id="btnQuickOpen" class="btn btn-secondary btn-sm">Open Tab</button>
         </div>
       </div>
@@ -568,11 +966,11 @@
   <section class="card console-card">
     <div class="console-header">
       <div class="card-title">
-        <span>📜</span>
+        <span class="card-icon">📜</span>
         <h2>Real-Time Activity & In-Tab Input Log</h2>
       </div>
       <div style="display:flex; gap:12px; align-items:center;">
-        <label style="font-size:0.8rem; color:var(--text-muted); cursor:pointer;">
+        <label style="font-size:0.78rem; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:6px;">
           <input type="checkbox" id="autoScrollCheck" checked /> Auto-scroll
         </label>
         <button id="btnClearConsole" class="btn btn-secondary btn-sm">Clear</button>

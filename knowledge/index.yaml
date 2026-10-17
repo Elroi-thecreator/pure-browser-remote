@@ -1,7 +1,7 @@
 project: "Chrome OS Remote Desktop & Pure Browser Remote"
-version: "1.6.0"
+version: "1.7.0"
 last_updated: "2026-10-17"
-knowledge_units_count: 16
+knowledge_units_count: 17
 
 domains:
   architecture:
@@ -49,6 +49,10 @@ domains:
     - id: "DEV-007"
       title: "Automated End-to-End Signaling and WebRTC Verification Protocol"
       file: "development/DEV-007-automated-e2e-testing-protocol.yaml"
+      status: "approved"
+    - id: "DEV-008"
+      title: "Glassmorphic Design System and Strict DOM Element Invariance Protocol"
+      file: "development/DEV-008-glassmorphic-design-system-and-dom-invariance.yaml"
       status: "approved"
   product:
     - id: "PROD-001"

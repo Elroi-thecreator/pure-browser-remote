@@ -1,0 +1,23 @@
+id: "DEV-008"
+type: "development"
+title: "Glassmorphic Design System and Strict DOM Element Invariance Protocol"
+domain: "frontend-and-ui"
+status: "approved"
+version: "1.0.0"
+rule: "All Pure Browser Remote interfaces (Host Extension Control Center and Web Viewer Client) must adhere to a unified obsidian dark-mode design system with glassmorphic depth while strictly preserving all DOM element IDs required by event dispatchers and WebRTC state machines."
+do:
+  - "Use obsidian background layers (#060913/#070a13) augmented with subtle radial gradients (primary blue and emerald accents) to create visual depth."
+  - "Apply backdrop-filter blur (14px–20px) on floating toolbars, modal overlays, status shelves, and control cards with 1px translucent borders (rgba(255, 255, 255, 0.08))."
+  - "Preserve all 58 DOM IDs in host.html and 46 DOM IDs in viewer/index.html to ensure zero regression in JavaScript getElementById bindings, WebSocket listeners, and input injectors."
+  - "Incorporate live pulsing indicators (@keyframes pulseGlow) for active WebSocket signaling, device presence, and WebRTC streaming sessions."
+  - "Provide high-contrast touch targets, quick-access floating scroll docks, and responsive viewport scaling for mobile and tablet viewers."
+  - "Style input fields with dark inset backgrounds, rounded borders, and luminous focus rings (rgba(59, 130, 246, 0.25))."
+dont:
+  - "Never alter, rename, or delete existing DOM element IDs during UI beautification or layout refactoring."
+  - "Do not introduce external heavy CSS frameworks, runtime script CDNs, or fonts that violate Chrome Extension Manifest V3 Content Security Policies (CSP)."
+  - "Do not clutter mobile viewports with non-essential controls; keep toolbars collapsable and touch actions accessible."
+reason: "In a zero-native-bridge architecture, host and viewer logic rely directly on exact DOM element references for event coordination, stream binding, and simulated input dispatching; maintaining strict DOM invariance while providing a polished Linear/Raycast dark aesthetic ensures reliability and high user trust."
+related_items:
+  - "DEV-004"
+  - "DEV-007"
+  - "PROD-003"
