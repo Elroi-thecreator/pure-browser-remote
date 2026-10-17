@@ -112,6 +112,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  // Handle remote cursor visibility broadcast & persistence
+  if (message.type === 'SET_CURSOR_VISIBILITY') {
+    (async () => {
+      const show = !!message.show;
+      try {
+        await chrome.storage.local.set({ pbr_show_remote_cursor: show });
+        const allTabs = await chrome.tabs.query({});
+        for (const tab of allTabs) {
+          if (isValidWebTab(tab)) {
+            chrome.tabs.sendMessage(tab.id, {
+              action: 'toggle_cursor',
+              show
+            }).catch(() => {});
+          }
+        }
+        sendResponse({ status: 'ok', show });
+      } catch (err) {
+        sendResponse({ status: 'error', error: err.message });
+      }
+    })();
+    return true;
+  }
+
   // Handle Tab navigation & management commands
   if (message.type === 'REMOTE_TAB_NAVIGATE') {
     (async () => {

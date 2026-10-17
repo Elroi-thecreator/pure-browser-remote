@@ -3,8 +3,8 @@ type: "development"
 title: "Content Script Synthetic DOM Event Injection and Element Targeting Protocol"
 domain: "input-simulation"
 status: "approved"
-version: "1.1.0"
-rule: "Input events simulated via content scripts must target the active element under normalized viewport coordinates, resolve valid external web tabs rather than internal extension pages, and dispatch standard synthetic DOM events with native prototype value descriptor synchronization for SPA frameworks."
+version: "1.2.0"
+rule: "Input events simulated via content scripts must target the active element under normalized viewport coordinates, resolve valid external web tabs rather than internal extension pages, dispatch standard synthetic DOM events with native prototype value descriptor synchronization for SPA frameworks, and render sleek, non-intrusive visual pointers with fail-safe DOM cleanup."
 do:
   - "Filter out chrome://, edge://, and chrome-extension:// tabs to guarantee inputs route to the actual target web page."
   - "Translate normalized coordinates (x, y) into client coordinates using window.innerWidth and window.innerHeight."
@@ -13,13 +13,18 @@ do:
   - "Dispatch beforeinput, input, and change events when injecting text to ensure two-way binding models synchronize."
   - "Support direct physical keyboard typing capture over WebRTC DataChannel alongside modal text injection."
   - "Trigger form.requestSubmit() or synthetic submit button clicks when Enter is pressed in search and form inputs."
-  - "Display a non-intrusive visual remote pointer indicator in the active page for host user awareness."
+  - "Display a non-intrusive, sleek SVG pointer arrow with fast 1.5s fade out and CSS keyframe ripples with strict pointer-events: none !important."
+  - "Purge lingering ripple elements before spawning new ripples and attach both animationend and setTimeout fallbacks to guarantee removal under background tab throttling."
+  - "Persist remote cursor visibility state in chrome.storage.local and broadcast updates across all open web tabs via background.js."
 dont:
   - "Do not set input.value without dispatching InputEvent and Event('change', { bubbles: true })."
   - "Do not dispatch remote inputs to chrome-extension:// or internal host control center tabs."
-  - "Do not let synthetic pointer markers intercept elementFromPoint queries (use pointer-events: none)."
-reason: "Modern Single Page Applications (SPAs) rely on synthetic event listeners and virtual DOM reconciliation; setting direct properties without invoking native prototype setters and beforeinput/input events causes React and Angular to drop or overwrite injected text."
+  - "Do not let synthetic pointer markers or ripples intercept elementFromPoint queries or mouse clicks."
+  - "Do not rely solely on requestAnimationFrame for transient visual feedback in tabs that may experience background execution throttling."
+  - "Do not display oversized glowing orbs or obstructive persistent badges that obscure interactive web page content."
+reason: "Modern Single Page Applications (SPAs) rely on synthetic event listeners and virtual DOM reconciliation; setting direct properties without invoking native prototype setters causes dropped text, while un-purged visual feedback elements under browser frame throttling create stuck visual artifacts."
 related_items:
   - "DEV-001"
   - "ARCH-003"
+
 

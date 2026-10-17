@@ -6,59 +6,132 @@
   if (window.__pureBrowserRemoteInjected) return;
   window.__pureBrowserRemoteInjected = true;
 
-  // Remote Cursor Overlay Elements
+  // Remote Cursor Overlay Elements & State
   let cursorEl = null;
   let cursorHideTimeout = null;
   let showRemoteCursor = true;
   let lastTargetInput = null;
 
+  // Load persisted remote cursor visibility preference
+  try {
+    if (chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['pbr_show_remote_cursor'], (res) => {
+        if (res && res.pbr_show_remote_cursor !== undefined) {
+          showRemoteCursor = !!res.pbr_show_remote_cursor;
+          if (!showRemoteCursor && cursorEl) {
+            cursorEl.style.display = 'none';
+          }
+        }
+      });
+    }
+  } catch (e) {}
+
+  // Synchronize dynamic preference changes across tabs
+  try {
+    if (chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.pbr_show_remote_cursor !== undefined) {
+          showRemoteCursor = !!changes.pbr_show_remote_cursor.newValue;
+          if (!showRemoteCursor) {
+            if (cursorEl) cursorEl.style.display = 'none';
+            cleanupRipples();
+          }
+        }
+      });
+    }
+  } catch (e) {}
+
+  function ensureStyles() {
+    if (document.getElementById('__pbr_cursor_styles__')) return;
+    const style = document.createElement('style');
+    style.id = '__pbr_cursor_styles__';
+    style.textContent = `
+      @keyframes __pbr_ripple_anim {
+        0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.85; }
+        100% { transform: translate(-50%, -50%) scale(2.0); opacity: 0; }
+      }
+      .__pbr_ripple {
+        position: fixed !important;
+        width: 16px !important;
+        height: 16px !important;
+        border-radius: 50% !important;
+        border: 2px solid #38bdf8 !important;
+        background: rgba(56, 189, 248, 0.25) !important;
+        pointer-events: none !important;
+        user-select: none !important;
+        z-index: 2147483647 !important;
+        animation: __pbr_ripple_anim 0.32s cubic-bezier(0.1, 0.8, 0.3, 1) forwards !important;
+      }
+      #__pure_remote_cursor__ {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        pointer-events: none !important;
+        user-select: none !important;
+        z-index: 2147483647 !important;
+        transform: translate(-3px, -3px) !important;
+        transition: opacity 0.2s ease-out !important;
+        display: none;
+        will-change: transform, left, top;
+      }
+      .__pbr_cursor_arrow {
+        width: 20px;
+        height: 20px;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+      }
+      .__pbr_cursor_badge {
+        position: absolute;
+        left: 18px;
+        top: 14px;
+        background: rgba(15, 23, 42, 0.9);
+        color: #93c5fd;
+        border: 1px solid rgba(59, 130, 246, 0.5);
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 9px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 600;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        pointer-events: none !important;
+        user-select: none !important;
+      }
+    `;
+    (document.head || document.documentElement).appendChild(style);
+  }
+
+  function cleanupRipples() {
+    try {
+      const ripples = document.querySelectorAll('.__pbr_ripple');
+      ripples.forEach((r) => r.remove());
+    } catch (e) {}
+  }
+
   function createRemoteCursor() {
-    if (cursorEl) return cursorEl;
+    ensureStyles();
+    if (cursorEl && document.contains(cursorEl)) return cursorEl;
+
+    const old = document.getElementById('__pure_remote_cursor__');
+    if (old) old.remove();
 
     cursorEl = document.createElement('div');
     cursorEl.id = '__pure_remote_cursor__';
-    cursorEl.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: rgba(59, 130, 246, 0.9);
-      border: 2px solid #ffffff;
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.8), 0 2px 6px rgba(0,0,0,0.4);
-      pointer-events: none;
-      z-index: 2147483647;
-      transform: translate(-50%, -50%);
-      transition: transform 0.04s ease-out, opacity 0.3s ease;
-      display: none;
+    cursorEl.innerHTML = `
+      <svg class="__pbr_cursor_arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 3L10.07 20.97L13.58 13.58L20.97 10.07L3 3Z" fill="#2563eb" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="__pbr_cursor_badge">Remote</div>
     `;
 
-    const label = document.createElement('div');
-    label.style.cssText = `
-      position: absolute;
-      left: 20px;
-      top: -2px;
-      background: #1e293b;
-      color: #93c5fd;
-      border: 1px solid rgba(59, 130, 246, 0.4);
-      border-radius: 4px;
-      padding: 1px 6px;
-      font-size: 10px;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      font-weight: 600;
-      white-space: nowrap;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    `;
-    label.textContent = 'Remote User';
-    cursorEl.appendChild(label);
-
-    document.documentElement.appendChild(cursorEl);
+    (document.body || document.documentElement).appendChild(cursorEl);
     return cursorEl;
   }
 
   function updateRemoteCursor(clientX, clientY) {
-    if (!showRemoteCursor) return;
+    if (!showRemoteCursor) {
+      if (cursorEl) cursorEl.style.display = 'none';
+      return;
+    }
     const cursor = createRemoteCursor();
     cursor.style.display = 'block';
     cursor.style.opacity = '1';
@@ -68,33 +141,27 @@
     clearTimeout(cursorHideTimeout);
     cursorHideTimeout = setTimeout(() => {
       if (cursorEl) cursorEl.style.opacity = '0';
-    }, 4000);
+    }, 1500);
   }
 
   function createClickRipple(clientX, clientY) {
-    const ripple = document.createElement('div');
-    ripple.style.cssText = `
-      position: fixed;
-      left: ${clientX}px;
-      top: ${clientY}px;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      border: 2px solid #38bdf8;
-      background: rgba(56, 189, 248, 0.3);
-      pointer-events: none;
-      z-index: 2147483647;
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-      transition: transform 0.4s cubic-bezier(0, 0, 0.2, 1), opacity 0.4s ease-out;
-    `;
-    document.documentElement.appendChild(ripple);
+    if (!showRemoteCursor) return;
+    ensureStyles();
+    cleanupRipples();
 
-    requestAnimationFrame(() => {
-      ripple.style.transform = 'translate(-50%, -50%) scale(5)';
-      ripple.style.opacity = '0';
-      setTimeout(() => ripple.remove(), 450);
-    });
+    const ripple = document.createElement('div');
+    ripple.className = '__pbr_ripple';
+    ripple.style.left = `${clientX}px`;
+    ripple.style.top = `${clientY}px`;
+
+    const removeSelf = () => {
+      try { ripple.remove(); } catch (e) {}
+    };
+
+    ripple.addEventListener('animationend', removeSelf, { once: true });
+    setTimeout(removeSelf, 350);
+
+    (document.body || document.documentElement).appendChild(ripple);
   }
 
   function isInputElement(el) {
@@ -295,10 +362,11 @@
 
     if (msg.action === 'toggle_cursor') {
       showRemoteCursor = !!msg.show;
-      if (!showRemoteCursor && cursorEl) {
-        cursorEl.style.display = 'none';
+      if (!showRemoteCursor) {
+        if (cursorEl) cursorEl.style.display = 'none';
+        cleanupRipples();
       }
-      sendResponse({ status: 'ok' });
+      sendResponse({ status: 'ok', show: showRemoteCursor });
       return;
     }
 

@@ -199,12 +199,19 @@
         'pbr_device_id',
         'pbr_device_name',
         'pbr_signaling_url',
-        'pbr_active_mode'
+        'pbr_active_mode',
+        'pbr_show_remote_cursor'
       ], (items) => {
         if (items.pbr_signaling_url) {
           signalingUrlInput.value = normalizeWsUrl(items.pbr_signaling_url);
         } else {
           signalingUrlInput.value = 'ws://localhost:8080';
+        }
+
+        if (items.pbr_show_remote_cursor !== undefined) {
+          toggleRemoteCursor.checked = !!items.pbr_show_remote_cursor;
+        } else {
+          toggleRemoteCursor.checked = true;
         }
 
         if (items.pbr_device_id) {
@@ -964,14 +971,15 @@
     localPreview.style.display = toggleLocalPreview.checked ? 'block' : 'none';
   });
 
-  toggleRemoteCursor.addEventListener('change', async () => {
-    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-    if (tab && tab.id) {
-      chrome.tabs.sendMessage(tab.id, {
-        action: 'toggle_cursor',
-        show: toggleRemoteCursor.checked
-      }).catch(() => {});
-    }
+  toggleRemoteCursor.addEventListener('change', () => {
+    const show = toggleRemoteCursor.checked;
+    chrome.storage.local.set({ pbr_show_remote_cursor: show });
+    chrome.runtime.sendMessage({
+      type: 'SET_CURSOR_VISIBILITY',
+      show
+    }, (res) => {
+      showToast(show ? 'Remote cursor enabled on pages' : 'Remote cursor hidden on pages', show ? 'info' : 'warn');
+    });
   });
 
   btnQuickOpen.addEventListener('click', () => {
